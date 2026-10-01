@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+src-tauri/target/
+src-tauri/gen/
+*.tsbuildinfo
+.DS_Store
+.env*
+!.env.example
+coverage/
