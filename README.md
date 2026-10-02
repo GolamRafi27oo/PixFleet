@@ -33,13 +33,29 @@ The commands below build the CPU architecture of the current Rust host toolchain
    xcode-select --install
    ```
 
-2. Complete the project setup above, then build both the application and disk-image installer:
+2. Make sure Cargo is available in your shell. If you are using the isolated Rust toolchain used for PixFleet validation, configure it for the current terminal session:
+
+   ```sh
+   export RUSTUP_HOME=/tmp/pixfleet-rustup
+   export CARGO_HOME=/tmp/pixfleet-cargo
+   export PATH="$CARGO_HOME/bin:$PATH"
+   ```
+
+   A regular Rust installation from [rustup](https://rustup.rs/) works too; in that case, skip these exports.
+
+3. Complete the project setup above, then build both the application and disk-image installer:
 
    ```sh
    pnpm tauri build --bundles app,dmg
    ```
 
-3. Find the results relative to the project root:
+   To build only the DMG installer:
+
+   ```sh
+   pnpm tauri build --bundles dmg
+   ```
+
+4. Find the results relative to the project root:
 
    ```text
    src-tauri/target/release/bundle/macos/PixFleet.app

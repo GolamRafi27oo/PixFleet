@@ -11,6 +11,7 @@ import {
   ChevronDown,
   CircleHelp,
   Code2,
+  Coffee,
   Copy,
   Folder,
   FolderOpen,
@@ -46,8 +47,12 @@ import {
   validatePreset,
 } from "@/lib/model";
 import { native } from "@/lib/native";
+import packageInfo from "../../package.json";
 
-type View = "workspace" | "presets" | "guide";
+type View = "workspace" | "presets" | "guide" | "settings";
+const APP_VERSION = packageInfo.version;
+const RELEASES_URL =
+  "https://api.github.com/repos/GolamRafi27oo/PixFleet/releases?per_page=1";
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
@@ -71,6 +76,10 @@ export default function Home() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsHealthy, setSettingsHealthy] = useState(true);
+  const [updateState, setUpdateState] = useState<
+    "idle" | "checking" | "up-to-date" | "available" | "no-release" | "error"
+  >("idle");
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const allPresets = [...PRESETS, ...custom];
   const selectedAssets = assets.filter((a) => selected.has(a.id));
@@ -83,6 +92,38 @@ export default function Home() {
     0,
   );
   const validation = validatePreset(preset);
+
+  const checkForUpdates = useCallback(async () => {
+    setUpdateState("checking");
+    try {
+      const response = await fetch(RELEASES_URL, {
+        headers: { Accept: "application/vnd.github+json" },
+      });
+      if (!response.ok) throw new Error("GitHub release lookup failed");
+      const releases = (await response.json()) as Array<{
+        tag_name?: string;
+        html_url?: string;
+      }>;
+      if (releases.length === 0) {
+        setLatestVersion(null);
+        setUpdateState("no-release");
+        return;
+      }
+      const release = releases[0];
+      const latest = release.tag_name?.replace(/^v/, "");
+      setLatestVersion(latest ?? null);
+      setUpdateState(
+        latest && latest !== APP_VERSION ? "available" : "up-to-date",
+      );
+    } catch {
+      setUpdateState("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    // Check silently on startup; the Settings page exposes the result and a manual retry.
+    void checkForUpdates();
+  }, [checkForUpdates]);
 
   const acceptImport = useCallback((response: ImportResult) => {
     setAssets((current) => [
@@ -310,6 +351,13 @@ export default function Home() {
             <SlidersHorizontal size={19} /> My presets{" "}
             <span className="tiny-dot" />
           </button>
+          <button
+            type="button"
+            className={`nav-item ${view === "settings" ? "active" : ""}`}
+            onClick={() => setView("settings")}
+          >
+            <Settings2 size={19} /> Settings
+          </button>
         </nav>
         <div className="sidebar-note">
           <div className="note-icon">
@@ -333,14 +381,18 @@ export default function Home() {
           >
             <CircleHelp size={18} /> Quick guide <ArrowRight size={15} />
           </button>
-          <div className="edition">
-            <span className="edition-mark">P</span>
-            <div>
-              <strong>Early access</strong>
-              <small>All features, ready to explore</small>
-            </div>
-            <span className="version">0.1</span>
-          </div>
+          <button
+            type="button"
+            className="edition-support"
+            aria-label="Support independent development"
+            onClick={() => {
+              document.querySelector<HTMLElement>(".sk-widget-btn")?.click();
+            }}
+          >
+            <Coffee size={19} strokeWidth={2.4} aria-hidden="true" />
+            <span className="support-label">Support dev</span>
+            <span className="version">v{APP_VERSION}</span>
+          </button>
         </div>
       </aside>
 
@@ -354,7 +406,9 @@ export default function Home() {
                 ? "Workspace"
                 : view === "presets"
                   ? "My presets"
-                  : "Quick guide"}
+                  : view === "guide"
+                    ? "Quick guide"
+                    : "Settings"}
             </strong>
           </div>
           <div className="topbar-actions">
@@ -364,7 +418,6 @@ export default function Home() {
                 ? "Processing on your device"
                 : "Desktop interface preview"}
             </div>
-            <ThemeToggle />
           </div>
         </header>
 
@@ -883,32 +936,81 @@ export default function Home() {
             </aside>
           </main>
         ) : (
-          <main className="secondary-page">
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => setView("workspace")}
-            >
-              <ArrowLeft size={16} /> Back to workspace
-            </button>
-            <div className="page-heading">
-              <div className="eyebrow">
-                {view === "presets"
-                  ? "YOUR WORKFLOW, ON REPEAT"
-                  : "A SMALL GUIDE TO LIGHTER WEBSITES"}
-              </div>
-              <h1>
-                {view === "presets"
-                  ? "Set it once. Ship it often."
-                  : "From folder to finished."}
-              </h1>
-              <p>
-                {view === "presets"
-                  ? "Reliable starting points for every kind of project."
-                  : "Three steps. Everything stays on your computer."}
-              </p>
-            </div>
-            {view === "presets" ? (
+          <main
+            className={`secondary-page ${view === "settings" ? "settings-secondary" : ""}`}
+          >
+            {view !== "settings" && (
+              <>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => setView("workspace")}
+                >
+                  <ArrowLeft size={16} /> Back to workspace
+                </button>
+                <div className="page-heading">
+                  <div className="eyebrow">
+                    {view === "presets"
+                      ? "YOUR WORKFLOW, ON REPEAT"
+                      : "A SMALL GUIDE TO LIGHTER WEBSITES"}
+                  </div>
+                  <h1>
+                    {view === "presets"
+                      ? "Set it once. Ship it often."
+                      : "From folder to finished."}
+                  </h1>
+                  <p>
+                    {view === "presets"
+                      ? "Reliable starting points for every kind of project."
+                      : "Three steps. Everything stays on your computer."}
+                  </p>
+                </div>
+              </>
+            )}
+            {view === "settings" ? (
+              <section className="settings-page">
+                <div className="page-heading">
+                  <div className="eyebrow">PIXfleet PREFERENCES</div>
+                  <h1>Settings</h1>
+                  <p>Appearance, updates, and ways to help improve PixFleet.</p>
+                </div>
+                <div className="settings-card">
+                  <div className="settings-card-copy">
+                    <h2>Appearance</h2>
+                    <p>
+                      Choose how PixFleet looks. System follows your device.
+                    </p>
+                  </div>
+                  <ThemeToggle />
+                </div>
+                <div className="settings-card">
+                  <div className="settings-card-copy">
+                    <h2>Updates</h2>
+                    <p>
+                      {updateState === "available"
+                        ? `Version ${latestVersion} is available on GitHub.`
+                        : updateState === "up-to-date"
+                          ? "You are running the latest version."
+                          : updateState === "no-release"
+                            ? `No GitHub releases have been published yet. Running v${APP_VERSION}.`
+                            : updateState === "error"
+                              ? `Could not check GitHub releases right now. Running v${APP_VERSION}.`
+                              : "Check GitHub for the latest PixFleet release."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="button secondary"
+                    onClick={checkForUpdates}
+                    disabled={updateState === "checking"}
+                  >
+                    {updateState === "checking"
+                      ? "Checking…"
+                      : "Check for updates"}
+                  </button>
+                </div>
+              </section>
+            ) : view === "presets" ? (
               <>
                 <div className="preset-grid">
                   {allPresets.map((p) => (
