@@ -79,7 +79,6 @@ export default function Home() {
     "idle" | "checking" | "up-to-date" | "available" | "error"
   >("idle");
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const allPresets = [...PRESETS, ...custom];
   const selectedAssets = assets.filter((a) => selected.has(a.id));
@@ -930,7 +929,9 @@ export default function Home() {
             </aside>
           </main>
         ) : (
-          <main className="secondary-page">
+          <main
+            className={`secondary-page ${view === "settings" ? "settings-secondary" : ""}`}
+          >
             {view !== "settings" && (
               <>
                 <button
@@ -997,19 +998,6 @@ export default function Home() {
                     {updateState === "checking"
                       ? "Checking…"
                       : "Check for updates"}
-                  </button>
-                </div>
-                <div className="settings-card">
-                  <div className="settings-card-copy">
-                    <h2>Feedback</h2>
-                    <p>Tell us what would make your image workflow better.</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="button secondary"
-                    onClick={() => setFeedbackOpen(true)}
-                  >
-                    Send feedback
                   </button>
                 </div>
               </section>
@@ -1196,44 +1184,6 @@ export default function Home() {
             >
               <Save size={16} />
               {saving ? "Saving…" : "Save preset"}
-            </button>
-          </div>
-        </Modal>
-      )}
-      {feedbackOpen && (
-        <Modal title="Share feedback" onClose={() => setFeedbackOpen(false)}>
-          <p className="modal-description">
-            Your feedback helps shape the next PixFleet release.
-          </p>
-          <label className="input-label" htmlFor="feedback-message">
-            What should we improve?
-          </label>
-          <textarea
-            id="feedback-message"
-            className="text-input feedback-input"
-            placeholder="Tell us what would make PixFleet better…"
-            rows={6}
-          />
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="button secondary"
-              onClick={() => setFeedbackOpen(false)}
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              className="button primary"
-              onClick={() =>
-                window.open(
-                  "https://github.com/GolamRafi27oo/PixFleet/issues/new",
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-            >
-              Open GitHub feedback
             </button>
           </div>
         </Modal>
