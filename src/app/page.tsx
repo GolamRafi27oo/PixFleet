@@ -47,11 +47,12 @@ import {
   validatePreset,
 } from "@/lib/model";
 import { native } from "@/lib/native";
+import packageInfo from "../../package.json";
 
 type View = "workspace" | "presets" | "guide" | "settings";
-const APP_VERSION = "0.1.0";
+const APP_VERSION = packageInfo.version;
 const RELEASES_URL =
-  "https://api.github.com/repos/GolamRafi27oo/PixFleet/releases/latest";
+  "https://api.github.com/repos/GolamRafi27oo/PixFleet/releases?per_page=1";
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
@@ -76,7 +77,7 @@ export default function Home() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsHealthy, setSettingsHealthy] = useState(true);
   const [updateState, setUpdateState] = useState<
-    "idle" | "checking" | "up-to-date" | "available" | "error"
+    "idle" | "checking" | "up-to-date" | "available" | "no-release" | "error"
   >("idle");
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -99,10 +100,16 @@ export default function Home() {
         headers: { Accept: "application/vnd.github+json" },
       });
       if (!response.ok) throw new Error("GitHub release lookup failed");
-      const release = (await response.json()) as {
+      const releases = (await response.json()) as Array<{
         tag_name?: string;
         html_url?: string;
-      };
+      }>;
+      if (releases.length === 0) {
+        setLatestVersion(null);
+        setUpdateState("no-release");
+        return;
+      }
+      const release = releases[0];
       const latest = release.tag_name?.replace(/^v/, "");
       setLatestVersion(latest ?? null);
       setUpdateState(
@@ -384,7 +391,7 @@ export default function Home() {
           >
             <Coffee size={19} strokeWidth={2.4} aria-hidden="true" />
             <span className="support-label">Support dev</span>
-            <span className="version">v0.1</span>
+            <span className="version">v{APP_VERSION}</span>
           </button>
         </div>
       </aside>
@@ -984,9 +991,11 @@ export default function Home() {
                         ? `Version ${latestVersion} is available on GitHub.`
                         : updateState === "up-to-date"
                           ? "You are running the latest version."
-                          : updateState === "error"
-                            ? "Could not check GitHub releases right now."
-                            : "Check GitHub for the latest PixFleet release."}
+                          : updateState === "no-release"
+                            ? `No GitHub releases have been published yet. Running v${APP_VERSION}.`
+                            : updateState === "error"
+                              ? `Could not check GitHub releases right now. Running v${APP_VERSION}.`
+                              : "Check GitHub for the latest PixFleet release."}
                     </p>
                   </div>
                   <button
