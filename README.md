@@ -155,6 +155,19 @@ pnpm desktop
 
 ## Verify before packaging
 
+[Biome](https://biomejs.dev/guides/getting-started/) handles linting, import organization and formatting for JavaScript, TypeScript, JSX, JSON and CSS. It replaces ESLint and Prettier; Tauri's native Rust code continues to use `cargo fmt` and Clippy.
+
+```sh
+pnpm lint          # Check lint rules, imports and formatting; fail on warnings
+pnpm lint:fix      # Apply safe lint fixes, organize imports and format
+pnpm format        # Format supported files without applying lint fixes
+pnpm format:check  # Check formatting without changing files
+```
+
+Configuration lives in `biome.json`, with React/Next.js rules and Tailwind CSS parsing enabled. Generated files and build outputs are excluded. Markdown, YAML, Rust and TOML are not formatted by this Biome setup. The global stylesheet keeps its existing component ordering and deliberate `!important` overrides through two file-scoped rule exceptions. Inline comments explain the few positional React keys that preserve editable input focus or identify immutable error snapshots.
+
+Run the full verification and packaging sequence:
+
 ```sh
 pnpm check
 cargo fmt --manifest-path src-tauri/Cargo.toml --check
@@ -164,6 +177,8 @@ pnpm desktop:build
 ```
 
 Webpack is explicitly selected for predictable static builds in environments that restrict Turbopack worker ports. Installer signing and release checks are described in [RELEASING.md](docs/RELEASING.md).
+
+The existing GitHub Actions workflow runs `pnpm check`, so Biome checks also run in CI before the frontend build.
 
 ## Supported workflow
 

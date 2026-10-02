@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { bytes, PRESETS, validatePreset, type Preset } from "./model";
+import { bytes, PRESETS, type Preset, validatePreset } from "./model";
 
 describe("Given a website export preset", () => {
   let preset: Preset;

@@ -4,7 +4,7 @@ Verified on 2 October 2026 on Apple Silicon macOS. A configured CI job is not ev
 
 ## Passed
 
-- `pnpm check`: strict TypeScript, ESLint with no warnings, 8 Vitest tests and Next.js production static export.
+- `pnpm check`: strict TypeScript, Biome lint/import/format checks with no warnings, 8 Vitest tests and Next.js production static export.
 - `pnpm format:check` and `cargo fmt --check`.
 - `cargo clippy --offline --all-targets -- -D warnings`.
 - `cargo test --offline`: 14 native integration tests with real WebP and AVIF encoders. Coverage includes output signatures, alpha, aspect ratio, duplicate effective widths, EXIF rotation, removal of EXIF/XMP, portable filenames, original preservation, cancellation after output was written, partial failures, all-failure cleanup, corrupt inputs, animation headers and oversized files.

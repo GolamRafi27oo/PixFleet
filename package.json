@@ -7,14 +7,15 @@
     "dev": "next dev --webpack --hostname 127.0.0.1",
     "build": "next build --webpack",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
     "test": "vitest run",
     "tauri": "tauri",
     "desktop": "tauri dev",
     "desktop:build": "tauri build",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "biome format --write .",
+    "format:check": "biome format ."
   },
   "dependencies": {
     "@tauri-apps/api": "^2.8.0",
@@ -24,16 +25,14 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@tailwindcss/postcss": "^4.1.0",
     "@tauri-apps/cli": "^2.8.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "eslint": "^9.0.0",
-    "eslint-config-next": "^16.0.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.9.0",
-    "vitest": "^3.2.0",
-    "prettier": "^3.6.0"
+    "vitest": "^3.2.0"
   }
 }

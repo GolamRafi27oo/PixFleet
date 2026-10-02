@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import {
   ArrowDownToLine,
   ArrowLeft,
@@ -32,19 +32,19 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { listen } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { native } from "@/lib/native";
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  bytes,
-  PRESETS,
-  validatePreset,
   type Asset,
+  bytes,
   type ExportResult,
   type ImportResult,
+  PRESETS,
   type Preset,
   type Progress,
+  validatePreset,
 } from "@/lib/model";
+import { native } from "@/lib/native";
 
 type View = "workspace" | "presets" | "guide";
 const errorMessage = (error: unknown) =>
@@ -146,7 +146,9 @@ export default function Home() {
       .catch((e) => setIssues([errorMessage(e)]));
     return () => {
       disposed = true;
-      unlisten.forEach((fn) => fn());
+      unlisten.forEach((fn) => {
+        fn();
+      });
     };
   }, [acceptImport]);
 
@@ -278,23 +280,21 @@ export default function Home() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <a
+        <button
+          type="button"
           className="brand"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            setView("workspace");
-          }}
+          onClick={() => setView("workspace")}
           aria-label="PixFleet home"
         >
           <span className="brand-symbol">
             <Layers3 size={23} strokeWidth={2.5} />
           </span>
           PixFleet<span className="brand-dot">.</span>
-        </a>
+        </button>
         <div className="space-label">YOUR STUDIO</div>
         <nav aria-label="Main navigation">
           <button
+            type="button"
             className={`nav-item ${view === "workspace" ? "active" : ""}`}
             onClick={() => setView("workspace")}
           >
@@ -302,6 +302,7 @@ export default function Home() {
             <span className="nav-count">{assets.length}</span>
           </button>
           <button
+            type="button"
             className={`nav-item ${view === "presets" ? "active" : ""}`}
             onClick={() => setView("presets")}
           >
@@ -325,6 +326,7 @@ export default function Home() {
         </div>
         <div className="sidebar-bottom">
           <button
+            type="button"
             className={`nav-item ${view === "guide" ? "active" : ""}`}
             onClick={() => setView("guide")}
           >
@@ -378,6 +380,7 @@ export default function Home() {
                 </h2>
                 <div>
                   <button
+                    type="button"
                     className="text-button"
                     disabled={!!busy}
                     onClick={() => importImages(true)}
@@ -385,6 +388,7 @@ export default function Home() {
                     <FolderOpen size={16} /> Add folder
                   </button>
                   <button
+                    type="button"
                     className="button secondary compact"
                     disabled={!!busy}
                     onClick={() => importImages(false)}
@@ -428,6 +432,7 @@ export default function Home() {
                     A whole folder or a few favorites. We’ll take it from here.
                   </p>
                   <button
+                    type="button"
                     className="button primary"
                     onClick={() => importImages(false)}
                     disabled={!!busy}
@@ -465,6 +470,7 @@ export default function Home() {
                     <span>DIMENSIONS</span>
                     <span>SIZE</span>
                     <button
+                      type="button"
                       aria-label="Remove selected images"
                       title="Remove selected images"
                       disabled={!!busy || !selected.size}
@@ -506,6 +512,7 @@ export default function Home() {
                       </span>
                       <span className="file-size">{bytes(asset.bytes)}</span>
                       <button
+                        type="button"
                         className="remove-image"
                         title={`Remove ${asset.name}`}
                         aria-label={`Remove ${asset.name}`}
@@ -517,6 +524,7 @@ export default function Home() {
                     </div>
                   ))}
                   <button
+                    type="button"
                     className="add-more"
                     disabled={!!busy}
                     onClick={() => importImages(false)}
@@ -536,6 +544,7 @@ export default function Home() {
                   <div>
                     <strong>A few things need attention</strong>
                     <button
+                      type="button"
                       aria-label="Dismiss errors"
                       onClick={() => setIssues([])}
                     >
@@ -544,6 +553,7 @@ export default function Home() {
                   </div>
                   <ul>
                     {issues.map((issue, i) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Immutable error snapshots may contain repeated messages.
                       <li key={i}>{issue}</li>
                     ))}
                   </ul>
@@ -562,6 +572,7 @@ export default function Home() {
                           : "Choose an export folder…"}
                     </strong>
                     <button
+                      type="button"
                       className="text-button"
                       disabled={cancelling}
                       onClick={async () => {
@@ -661,6 +672,7 @@ export default function Home() {
                   <div className="format-options">
                     {(["webp", "avif"] as const).map((format) => (
                       <button
+                        type="button"
                         key={format}
                         className={`format-card ${preset.formats.includes(format) ? "chosen" : ""}`}
                         aria-pressed={preset.formats.includes(format)}
@@ -718,6 +730,7 @@ export default function Home() {
                   </div>
                   <div className="size-list">
                     {preset.widths.map((width, index) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Controlled width slots retain input focus while their values change.
                       <div className="size-row" key={index}>
                         {index === 0 ? (
                           <Smartphone size={17} />
@@ -754,6 +767,7 @@ export default function Home() {
                           <span>px</span>
                         </div>
                         <button
+                          type="button"
                           className="width-remove"
                           aria-label={`Remove size ${index + 1}`}
                           onClick={() =>
@@ -770,6 +784,7 @@ export default function Home() {
                     ))}
                   </div>
                   <button
+                    type="button"
                     className="text-button add-size"
                     disabled={preset.widths.length >= 6}
                     onClick={() =>
@@ -815,6 +830,7 @@ export default function Home() {
                     </span>
                   </div>
                   <button
+                    type="button"
                     className="save-preset"
                     disabled={!settingsHealthy || !!validation}
                     onClick={() => {
@@ -843,6 +859,7 @@ export default function Home() {
                   <strong>{outputs} outputs</strong>
                 </div>
                 <button
+                  type="button"
                   className="button primary export-button"
                   disabled={!!busy || !selected.size || !!validation}
                   onClick={exportImages}
@@ -864,6 +881,7 @@ export default function Home() {
         ) : (
           <main className="secondary-page">
             <button
+              type="button"
               className="text-button"
               onClick={() => setView("workspace")}
             >
@@ -913,6 +931,7 @@ export default function Home() {
                       </div>
                       <div className="preset-tile-bottom">
                         <button
+                          type="button"
                           className="text-button"
                           disabled={!!busy}
                           onClick={() => {
@@ -924,6 +943,7 @@ export default function Home() {
                         </button>
                         {!PRESETS.some((b) => b.id === p.id) && (
                           <button
+                            type="button"
                             aria-label={`Delete ${p.name}`}
                             disabled={!!busy || saving || !settingsHealthy}
                             onClick={() => deletePreset(p.id)}
@@ -1012,6 +1032,7 @@ export default function Home() {
           <CheckCheck size={18} />
           <span>{notice}</span>
           <button
+            type="button"
             aria-label="Dismiss notification"
             onClick={() => setNotice(null)}
           >
@@ -1038,7 +1059,6 @@ export default function Home() {
             Preset name
           </label>
           <input
-            autoFocus
             id="preset-name"
             className="text-input"
             maxLength={80}
@@ -1052,6 +1072,7 @@ export default function Home() {
           />
           <div className="modal-actions">
             <button
+              type="button"
               className="button secondary"
               disabled={saving}
               onClick={() => setSaveOpen(false)}
@@ -1059,6 +1080,7 @@ export default function Home() {
               Cancel
             </button>
             <button
+              type="button"
               className="button primary"
               disabled={!presetName.trim() || saving}
               onClick={savePreset}
@@ -1097,6 +1119,7 @@ export default function Home() {
               <strong>{result.errors.length} images skipped</strong>
               <ul>
                 {result.errors.map((e, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Export errors are an immutable snapshot with possible duplicates.
                   <li key={i}>{e}</li>
                 ))}
               </ul>
@@ -1114,12 +1137,14 @@ export default function Home() {
           </p>
           <div className="modal-actions">
             <button
+              type="button"
               className="button secondary"
               onClick={() => setResult(null)}
             >
               Done
             </button>
             <button
+              type="button"
               className="button primary"
               onClick={async () => {
                 try {
@@ -1188,7 +1213,7 @@ function Modal({
     >
       <div className="modal-heading">
         <h2>{title}</h2>
-        <button aria-label="Close dialog" onClick={onClose}>
+        <button type="button" aria-label="Close dialog" onClick={onClose}>
           <X size={20} />
         </button>
       </div>

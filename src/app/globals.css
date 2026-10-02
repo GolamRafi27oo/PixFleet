@@ -1564,10 +1564,10 @@ input[type="range"] {
     column-gap: 25px;
   }
   .preset-section {
-    grid-column: 1/-1;
+    grid-column: 1 / -1;
   }
   .naming-section {
-    grid-column: 1/-1;
+    grid-column: 1 / -1;
   }
   .export-action {
     margin-top: 15px;
