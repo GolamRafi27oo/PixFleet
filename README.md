@@ -187,6 +187,7 @@ The existing GitHub Actions workflow runs `pnpm check`, so Biome checks also run
 - Up to 500 images per workspace, 100 MB per file, 40 megapixels and 16,000 pixels per dimension.
 - 1–6 output widths, no upscaling, preserved aspect ratio, duplicate effective widths removed.
 - Built-in and locally saved presets, adjustable quality and filename prefix.
+- System, Light and Dark appearance choices in the header. System is the default and follows OS appearance changes; your choice is saved locally on this device.
 - EXIF orientation applied before source metadata is discarded.
 - Progress, cancellation between outputs, partial failure reporting, fresh output folder per export.
 - Ready-to-copy HTML plus `images.html`, `manifest.json` and export instructions.

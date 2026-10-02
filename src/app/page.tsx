@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   type Asset,
   bytes,
@@ -356,11 +357,14 @@ export default function Home() {
                   : "Quick guide"}
             </strong>
           </div>
-          <div className="local-badge">
-            <span className="status-dot" />
-            {desktop
-              ? "Processing on your device"
-              : "Desktop interface preview"}
+          <div className="topbar-actions">
+            <div className="local-badge">
+              <span className="status-dot" />
+              {desktop
+                ? "Processing on your device"
+                : "Desktop interface preview"}
+            </div>
+            <ThemeToggle />
           </div>
         </header>
 
