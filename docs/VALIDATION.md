@@ -34,6 +34,10 @@ Reproduce with a new output directory:
 cargo run --release --example batch_check --manifest-path src-tauri/Cargo.toml -- /tmp/pixfleet-qa-new
 ```
 
+## Appearance validation
+
+`pnpm check` and `pnpm format:check` pass. Browser preview checks covered the default System selection, switching Light/Dark, restoring both explicit choices after reload, the dark workspace at desktop and narrow widths, and desktop settings/dialog rendering. System resolved to this machine's dark appearance. It uses `prefers-color-scheme` directly in CSS; live OS switching and native platform appearance still need checks on each supported desktop OS.
+
 ## Pending platform checks
 
 - Native macOS dialog, drag/drop, clipboard and restart-persistence UI checks: Computer Use was unavailable because its macOS permissions were not granted. The Rust processing engine was verified separately; the browser preview does not exercise native IPC.
