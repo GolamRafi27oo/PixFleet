@@ -1,5 +1,7 @@
 "use client";
 
+import { isTauri } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { readTheme, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
@@ -10,16 +12,29 @@ const options = [
   { value: "dark", label: "Dark", icon: Moon },
 ] as const;
 
+function syncNativeTheme(theme: Theme) {
+  if (!isTauri()) return;
+  // null restores native OS appearance tracking, including the macOS title bar.
+  void getCurrentWindow()
+    .setTheme(theme === "system" ? null : theme)
+    .catch((error: unknown) => {
+      console.error("Could not update native window appearance", error);
+    });
+}
+
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {
-    setTheme(readTheme(document.documentElement.dataset.theme));
+    const initial = readTheme(document.documentElement.dataset.theme);
+    setTheme(initial);
+    syncNativeTheme(initial);
     const sync = (event: StorageEvent) => {
       if (event.key !== THEME_STORAGE_KEY && event.key !== null) return;
       const next = readTheme(event.newValue);
       document.documentElement.dataset.theme = next;
       setTheme(next);
+      syncNativeTheme(next);
     };
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
@@ -28,6 +43,7 @@ export function ThemeToggle() {
   const selectTheme = (next: Theme) => {
     document.documentElement.dataset.theme = next;
     setTheme(next);
+    syncNativeTheme(next);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {

@@ -3,5 +3,5 @@
   "identifier": "main",
   "description": "Local desktop event and window access only",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "core:window:allow-set-theme"]
 }
