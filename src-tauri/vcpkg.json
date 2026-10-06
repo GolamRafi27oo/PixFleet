@@ -1,0 +1,7 @@
+{
+  "name": "pixfleet-codecs",
+  "version-string": "0.2.0",
+  "dependencies": [
+    { "name": "libheif", "default-features": false, "features": ["hevc"] }
+  ]
+}

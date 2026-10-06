@@ -4,7 +4,7 @@ A local image preparation workspace for macOS, Windows and Linux. Built with **N
 
 ![PixFleet workspace](docs/screenshots/workspace.jpg)
 
-Import a folder, choose a preset, and export compressed WebP/AVIF images at multiple widths, portable filenames, organized format folders, metadata-free images, responsive HTML and a JSON manifest. No uploads, account, application server, telemetry or hosted database.
+Import a folder, choose a preset, and export WebP, AVIF, PNG, JPEG or HEIC images at multiple widths, portable filenames, organized format folders, metadata-free images. No uploads, account, application server, telemetry or hosted database.
 
 ## Set up the project
 
@@ -198,7 +198,7 @@ The existing GitHub Actions workflow runs `pnpm check`, so Biome checks also run
 
 ## Supported workflow
 
-- JPEG, PNG and static WebP input; transparent WebP and AVIF output.
+- JPEG, PNG, static WebP and HEIC/HEIF input; WebP, AVIF, PNG, JPEG and HEIC output. PNG is lossless; JPEG composites transparency onto white.
 - File/folder picker and native drag/drop, recursive folder import, duplicate suppression.
 - Up to 500 images per workspace, 100 MB per file, 40 megapixels and 16,000 pixels per dimension.
 - 1–6 output widths, no upscaling, preserved aspect ratio, duplicate effective widths removed.
@@ -206,7 +206,7 @@ The existing GitHub Actions workflow runs `pnpm check`, so Biome checks also run
 - System, Light and Dark appearance choices in the header, including the native window appearance. System is the default and follows OS appearance changes; your choice is saved locally on this device.
 - EXIF orientation applied before source metadata is discarded.
 - Progress, cancellation between outputs, partial failure reporting, fresh output folder per export.
-- Ready-to-copy HTML plus `images.html`, `manifest.json` and export instructions.
+- Image-only exports organized into format folders.
 
 The early-access edition has all features available. The 500-image limit is a resource guard, not a Free/Pro restriction. There is no payment processing or license enforcement yet.
 
@@ -214,20 +214,17 @@ The early-access edition has all features available. The 500-image limit is a re
 
 ```text
 pixfleet-<unique-id>/
-  webp/client-hero-001-640w.webp
-  webp/client-hero-001-1024w.webp
-  avif/client-hero-001-640w.avif
-  avif/client-hero-001-1024w.avif
-  images.html
-  manifest.json
-  README.txt
+  webp/pixfleet-001-640w.webp
+  webp/pixfleet-001-1024w.webp
+  avif/pixfleet-001-640w.avif
+  avif/pixfleet-001-1024w.avif
 ```
 
-Originals remain untouched. Total export size may exceed input size because you are creating multiple derivatives. Add alt text, adapt `sizes` to your layout and use eager loading for hero images before publishing snippets.
+Originals remain untouched. Total export size may exceed input size because you are creating multiple derivatives.
 
 ## Important boundaries
 
-Use sRGB originals for predictable colors. ICC/wide-gamut profiles are not preserved or color-managed. Animation, HEIC, SVG, RAW and AVIF inputs are rejected or omitted by folder import. Export cancellation waits for an active encode to finish. Closing or force-quitting during export may leave a hidden `.pixfleet-*` staging folder in the chosen destination; it can be removed after confirming no export is running.
+Use sRGB originals for predictable colors. ICC/wide-gamut profiles are not preserved or color-managed. Animation, SVG, RAW and AVIF inputs are rejected or omitted by folder import. Export cancellation waits for an active encode to finish. Closing or force-quitting during export may leave a hidden `.pixfleet-*` staging folder in the chosen destination; it can be removed after confirming no export is running.
 
 This repository is an implemented early-access application, not a signed commercial release. Cross-platform source and CI are included; actual platform verification is recorded in [validation](docs/VALIDATION.md), never inferred from configuration alone.
 
@@ -239,3 +236,18 @@ This repository is an implemented early-access application, not a signed commerc
 - [Security boundaries](docs/SECURITY.md)
 - [Release checklist](docs/RELEASING.md)
 - [Verification record](docs/VALIDATION.md)
+
+### HEIC native build dependency
+
+HEIC import/export uses libheif 1.23.1+ with an HEVC decoder and encoder. For macOS development install `brew install libheif pkgconf`. Release CI uses the pinned vcpkg checkout and `scripts/prepare-native-codecs.py` to link codecs statically; see [release instructions](docs/RELEASING.md#heic-codec-builds). Choose WebP, AVIF, PNG or JPEG for website use. HEIF collections import their primary image, and image sequences are rejected.
+
+### Build error after moving or copying the project
+
+If Tauri reports `failed to read plugin permissions` and the missing path points to the project's previous location, Cargo is reusing generated build files with stale absolute paths. Clear the release cache from the current project root, then repeat your build:
+
+```sh
+cargo clean --manifest-path src-tauri/Cargo.toml --release
+pnpm desktop:build
+```
+
+This removes generated release outputs, including previous installers, and rebuilds them. For the same error during `pnpm desktop`, omit `--release` from the clean command. Do not copy `src-tauri/target/` when moving the project; it is already excluded from Git.

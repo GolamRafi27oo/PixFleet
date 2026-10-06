@@ -1,6 +1,7 @@
 use image::{
-    codecs::avif::AvifEncoder, imageops::FilterType, DynamicImage, ImageDecoder, ImageEncoder,
-    ImageReader, Limits,
+    codecs::{avif::AvifEncoder, jpeg::JpegEncoder, png::PngEncoder},
+    imageops::FilterType,
+    DynamicImage, ImageDecoder, ImageEncoder, ImageReader, Limits,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -39,11 +40,14 @@ impl Preset {
             return Err("Quality must be 1–100".into());
         }
         if self.formats.is_empty()
-            || self.formats.len() > 2
-            || self.formats.iter().any(|f| f != "webp" && f != "avif")
+            || self.formats.len() > 5
+            || self
+                .formats
+                .iter()
+                .any(|f| !matches!(f.as_str(), "webp" | "avif" | "png" | "jpeg" | "heic"))
             || self.formats.iter().collect::<BTreeSet<_>>().len() != self.formats.len()
         {
-            return Err("Choose unique WebP and/or AVIF formats".into());
+            return Err("Choose unique WebP, AVIF, PNG, JPEG or HEIC formats".into());
         }
         if self.widths.is_empty()
             || self.widths.len() > 6
@@ -65,24 +69,6 @@ pub struct Source {
     pub name: String,
 }
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Variant {
-    pub path: String,
-    pub format: String,
-    pub width: u32,
-    pub height: u32,
-    pub bytes: u64,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ExportedImage {
-    pub name: String,
-    pub input_bytes: u64,
-    pub variants: Vec<Variant>,
-}
-
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Progress {
@@ -100,7 +86,6 @@ pub struct ExportResult {
     pub input_bytes: u64,
     pub output_bytes: u64,
     pub errors: Vec<String>,
-    pub html: String,
     pub cancelled: bool,
 }
 
@@ -185,6 +170,9 @@ pub fn decode(path: &Path) -> Result<(DynamicImage, u64), String> {
         return Err("Animated images are not supported; choose a still image".into());
     }
     let size = bytes.len() as u64;
+    if crate::heic::is_heic(&bytes) {
+        return crate::heic::decode(&bytes).map(|image| (image, size));
+    }
     let mut reader = ImageReader::new(Cursor::new(bytes))
         .with_guessed_format()
         .map_err(|e| e.to_string())?;
@@ -192,7 +180,7 @@ pub fn decode(path: &Path) -> Result<(DynamicImage, u64), String> {
         reader.format(),
         Some(image::ImageFormat::Jpeg | image::ImageFormat::Png | image::ImageFormat::WebP)
     ) {
-        return Err("Supported inputs: JPEG, PNG and static WebP".into());
+        return Err("Supported inputs: JPEG, PNG, static WebP and HEIC/HEIF".into());
     }
     let mut limits = Limits::default();
     limits.max_image_width = Some(16000);
@@ -219,19 +207,50 @@ fn encode(image: &DynamicImage, format: &str, quality: u8, path: &Path) -> Resul
             .open(path)
             .map_err(|e| e.to_string())?,
     );
-    if format == "webp" {
-        let encoded = webp::Encoder::from_rgba(rgba.as_raw(), rgba.width(), rgba.height())
-            .encode(quality as f32);
-        file.write_all(&encoded).map_err(|e| e.to_string())?;
-    } else {
-        AvifEncoder::new_with_speed_quality(&mut file, 7, quality)
+    match format {
+        "webp" => {
+            let encoded = webp::Encoder::from_rgba(rgba.as_raw(), rgba.width(), rgba.height())
+                .encode(quality as f32);
+            file.write_all(&encoded).map_err(|e| e.to_string())?;
+        }
+        "avif" => AvifEncoder::new_with_speed_quality(&mut file, 7, quality)
             .write_image(
                 rgba.as_raw(),
                 rgba.width(),
                 rgba.height(),
                 image::ExtendedColorType::Rgba8,
             )
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| e.to_string())?,
+        "png" => PngEncoder::new(&mut file)
+            .write_image(
+                rgba.as_raw(),
+                rgba.width(),
+                rgba.height(),
+                image::ExtendedColorType::Rgba8,
+            )
+            .map_err(|e| e.to_string())?,
+        "jpeg" => {
+            // JPEG has no alpha channel. Composite onto white instead of dropping alpha.
+            let rgb = image::RgbImage::from_fn(rgba.width(), rgba.height(), |x, y| {
+                let pixel = rgba.get_pixel(x, y);
+                let alpha = u32::from(pixel[3]);
+                image::Rgb([0, 1, 2].map(|c| {
+                    ((u32::from(pixel[c]) * alpha + 255 * (255 - alpha) + 127) / 255) as u8
+                }))
+            });
+            JpegEncoder::new_with_quality(&mut file, quality)
+                .encode(
+                    rgb.as_raw(),
+                    rgb.width(),
+                    rgb.height(),
+                    image::ExtendedColorType::Rgb8,
+                )
+                .map_err(|e| e.to_string())?;
+        }
+        "heic" => file
+            .write_all(&crate::heic::encode(&rgba, quality)?)
+            .map_err(|e| e.to_string())?,
+        _ => return Err("Unsupported output format".into()),
     }
     file.flush().map_err(|e| e.to_string())?;
     file.get_ref().sync_all().map_err(|e| e.to_string())?;
@@ -239,48 +258,6 @@ fn encode(image: &DynamicImage, format: &str, quality: u8, path: &Path) -> Resul
         .metadata()
         .map(|m| m.len())
         .map_err(|e| e.to_string())
-}
-
-pub fn escape_html(value: &str) -> String {
-    value
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&#39;")
-}
-
-pub fn snippets(images: &[ExportedImage]) -> String {
-    let mut html = String::from("<!-- Replace empty alt text with a meaningful description for non-decorative images. -->\n");
-    for image in images {
-        html.push_str("<picture>\n");
-        for format in ["avif", "webp"] {
-            let variants: Vec<_> = image
-                .variants
-                .iter()
-                .filter(|v| v.format == format)
-                .collect();
-            if !variants.is_empty() {
-                let set = variants
-                    .iter()
-                    .map(|v| format!("{} {}w", escape_html(&v.path), v.width))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                html.push_str(&format!("  <source type=\"image/{format}\" srcset=\"{set}\" sizes=\"(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1920px\">\n"));
-            }
-        }
-        if let Some(fallback) = image
-            .variants
-            .iter()
-            .filter(|v| v.format == "webp")
-            .max_by_key(|v| v.width)
-            .or_else(|| image.variants.iter().max_by_key(|v| v.width))
-        {
-            html.push_str(&format!("  <img src=\"{}\" width=\"{}\" height=\"{}\" alt=\"\" loading=\"lazy\" decoding=\"async\">\n", escape_html(&fallback.path), fallback.width, fallback.height));
-        }
-        html.push_str("</picture>\n\n");
-    }
-    html
 }
 
 pub fn export(
@@ -299,7 +276,6 @@ pub fn export(
         .tempdir_in(destination)
         .map_err(|e| e.to_string())?;
     let mut result = ExportResult::default();
-    let mut completed = Vec::new();
     for (index, source) in sources.iter().enumerate() {
         if cancelled.load(Ordering::Relaxed) {
             return Ok(ExportResult {
@@ -312,20 +288,17 @@ pub fn export(
             total: sources.len(),
             filename: source.name.clone(),
         });
-        let stem = Path::new(&source.name)
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy();
         let prefix = if preset.prefix.trim().is_empty() {
-            String::new()
+            "pixfleet".to_owned()
         } else {
-            format!("{}-", slug(&preset.prefix))
+            slug(&preset.prefix)
         };
-        let basename = format!("{prefix}{}-{:03}", slug(&stem), index + 1);
+        let basename = format!("{prefix}-{:03}", index + 1);
         let mut written = Vec::new();
-        let attempt = (|| -> Result<ExportedImage, String> {
+        let attempt = (|| -> Result<(u64, u64, usize), String> {
             let (image, input_bytes) = decode(&source.path)?;
-            let mut variants = Vec::new();
+            let mut output_bytes = 0;
+            let mut files = 0;
             for width in effective_widths(&preset.widths, image.width()) {
                 let height = ((u64::from(image.height()) * u64::from(width)
                     + u64::from(image.width()) / 2)
@@ -341,27 +314,18 @@ pub fn export(
                     let path = stage.path().join(&relative);
                     written.push(path.clone());
                     let bytes = encode(&resized, format, preset.quality, &path)?;
-                    variants.push(Variant {
-                        path: relative,
-                        format: format.clone(),
-                        width,
-                        height,
-                        bytes,
-                    });
+                    output_bytes += bytes;
+                    files += 1;
                 }
             }
-            Ok(ExportedImage {
-                name: source.name.clone(),
-                input_bytes,
-                variants,
-            })
+            Ok((input_bytes, output_bytes, files))
         })();
         match attempt {
-            Ok(image) => {
-                result.input_bytes += image.input_bytes;
-                result.output_bytes += image.variants.iter().map(|v| v.bytes).sum::<u64>();
-                result.files += image.variants.len();
-                completed.push(image);
+            Ok((input_bytes, output_bytes, files)) => {
+                result.input_bytes += input_bytes;
+                result.output_bytes += output_bytes;
+                result.files += files;
+                result.images += 1;
             }
             Err(error) => {
                 for path in written {
@@ -386,19 +350,9 @@ pub fn export(
             ..Default::default()
         });
     }
-    if completed.is_empty() {
+    if result.images == 0 {
         return Err(format!("No images exported. {}", result.errors.join("; ")));
     }
-    result.images = completed.len();
-    result.html = snippets(&completed);
-    fs::write(stage.path().join("images.html"), &result.html).map_err(|e| e.to_string())?;
-    let manifest = serde_json::json!({ "schemaVersion": 1, "preset": preset, "images": completed, "errors": result.errors });
-    fs::write(
-        stage.path().join("manifest.json"),
-        serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?,
-    )
-    .map_err(|e| e.to_string())?;
-    fs::write(stage.path().join("README.txt"), "PixFleet export\n\nKeep the format folders beside images.html. Adjust sizes to match your CSS layout and add descriptive alt text. Use eager loading for above-the-fold hero images. AVIF-only exports have no WebP fallback. Source metadata is removed; verify color on wide-gamut originals.\n").map_err(|e| e.to_string())?;
     let output = destination.join(format!("pixfleet-{}", uuid::Uuid::new_v4()));
     fs::rename(stage.path(), &output).map_err(|e| e.to_string())?;
     result.directory = output.to_string_lossy().into_owned();

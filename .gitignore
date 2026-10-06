@@ -8,3 +8,7 @@ src-tauri/gen/
 .env*
 !.env.example
 coverage/
+
+.vcpkg/
+.native/
+src-tauri/vcpkg_installed/
