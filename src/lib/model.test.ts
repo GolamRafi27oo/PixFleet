@@ -8,7 +8,9 @@ describe("Given a website export preset", () => {
   });
   it("When all output formats are deselected then export is rejected", () => {
     preset.formats = [];
-    expect(validatePreset(preset)).toBe("Choose at least one output format.");
+    expect(validatePreset(preset)).toBe(
+      "Choose at least one output format, without duplicates.",
+    );
   });
   it("When responsive widths repeat then export is rejected", () => {
     preset.widths = [640, 640];
@@ -25,6 +27,17 @@ describe("Given a website export preset", () => {
   it("When quality exceeds the codec range then export is rejected", () => {
     preset.quality = 101;
     expect(validatePreset(preset)).toContain("1 and 100");
+  });
+  it.each(["png", "jpeg", "heic"] as const)(
+    "When %s is selected then the preset is valid",
+    (format) => {
+      preset.formats = [format];
+      expect(validatePreset(preset)).toBeNull();
+    },
+  );
+  it("When a format repeats then the preset is rejected", () => {
+    preset.formats = ["png", "png"];
+    expect(validatePreset(preset)).toContain("duplicates");
   });
   it("When valid settings are submitted then export is allowed", () => {
     expect(validatePreset(preset)).toBeNull();

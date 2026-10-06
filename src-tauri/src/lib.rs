@@ -1,4 +1,5 @@
 pub mod engine;
+mod heic;
 
 use base64::Engine;
 use engine::{ExportResult, Preset, Source};
@@ -84,7 +85,7 @@ fn collect(paths: Vec<PathBuf>) -> (Vec<PathBuf>, Vec<String>) {
         } else if path.extension().is_some_and(|s| {
             matches!(
                 s.to_string_lossy().to_ascii_lowercase().as_str(),
-                "jpg" | "jpeg" | "png" | "webp"
+                "jpg" | "jpeg" | "png" | "webp" | "heic" | "heif"
             )
         }) {
             files.push(path);
@@ -170,7 +171,7 @@ async fn pick_images(app: tauri::AppHandle, folder: bool) -> Result<ImportResult
             .map(|f| vec![f.path().to_owned()])
     } else {
         dialog
-            .add_filter("Images", &["jpg", "jpeg", "png", "webp"])
+            .add_filter("Images", &["jpg", "jpeg", "png", "webp", "heic", "heif"])
             .pick_files()
             .await
             .map(|files| files.into_iter().map(|f| f.path().to_owned()).collect())

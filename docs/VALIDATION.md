@@ -61,3 +61,28 @@ Install a persistent stable Rust toolchain using the official Rust installer for
 ## Release limitations
 
 Apple/Windows signing credentials, notarization, checkout and real license enforcement are not configured. Windows/Linux installers and Intel macOS support must be verified on their own runners and hardware before claiming tested support. Wide-gamut color management is outside this version.
+
+## 0.2.0 refactor verification — 5 October 2026
+
+- Passed `pnpm check`: TypeScript, Biome with warnings treated as errors, 20 unit tests, and the Next.js production static export.
+- Verified browser preview at 1320 × 880 and 390 × 844: navigation, light/system-dark appearance, responsive export controls, preset dialog focus and saving, and duplicate-width validation. Temporary browser preset data was cleared by reloading.
+- No application console errors were observed. The external support widget emitted its own guest-view warning.
+- Native checks were unavailable on 5 October; the following 6 October verification supersedes that limitation.
+
+## 0.2.0 image formats — 6 October 2026
+
+- Passed `pnpm check`: strict TypeScript, Biome with warnings treated as errors, 24 unit tests, and Next.js production static export.
+- Passed `cargo fmt --manifest-path src-tauri/Cargo.toml --check`, `cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings`, and `cargo test --manifest-path src-tauri/Cargo.toml --locked`.
+- All 20 native integration tests pass, including actual PNG/JPEG/HEIC signatures, transparent PNG and HEIC round trips, JPEG white compositing, HEIC input resized into PNG/JPEG/WebP, original preservation, malformed HEIC rejection, and HEIC-only HTML behavior.
+- Native verification uses Homebrew Rust 1.99.0, libheif 1.23.5 and its x265 encoder on Apple Silicon macOS. The earlier temporary-toolchain instructions are historical.
+- Passed `pnpm tauri build --no-bundle`, producing the optimized Apple Silicon executable at `src-tauri/target/release/pixfleet` with the local Homebrew codec libraries.
+- Browser checks at desktop and 390 × 844 verified the five format choices, PNG-only disabled quality control, JPEG/HEIC explanations, and the responsive format grid. Browser preview does not exercise native IPC.
+- Static codec CI packaging, Windows/Linux runtime, clean-machine installation, independent real-camera HEIC fixtures and codec distribution licensing remain release gates. Locally linked Homebrew builds are development artifacts, not portable installers.
+
+## Image-only export follow-up — 6 October 2026
+
+- Removed HTML generation, JSON manifests, README sidecars and HTML-copy controls. Default exported filenames use `pixfleet`; custom prefixes replace it.
+- Passed `pnpm check` (24 frontend tests and production static export), native formatting, Clippy with warnings denied, and 19 native integration tests. The obsolete HTML-escaping test was removed along with HTML generation.
+- Export checks inspect actual output directories for WebP/AVIF, PNG/JPEG/HEIC and HEIC-only batches, requiring only image files in format folders and matching the reported file count.
+- HEIC bindings now target libheif 1.23 to match the complete security-limits structure used by the pinned codec build; the HEIC regression subset passed five consecutive runs after the earlier intermittent decoder failure.
+- The installed desktop app must be rebuilt to include these changes. Earlier validation entries describe the features present at their verification time.

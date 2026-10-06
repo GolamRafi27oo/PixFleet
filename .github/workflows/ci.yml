@@ -38,8 +38,19 @@ jobs:
           workspaces: src-tauri -> target
       - name: Linux system libraries
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf cmake ninja-build nasm pkg-config
       - run: pnpm install --frozen-lockfile
+      - name: Pinned native codec sources
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: 0bc1a55f422ceb190877234b3ba88c372f04c485
+          path: .vcpkg
+      - name: macOS native build tools
+        if: runner.os == 'macOS'
+        run: brew install cmake pkgconf nasm
+      - name: Build static HEIC codecs
+        run: python scripts/prepare-native-codecs.py
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings
       - run: cargo test --manifest-path src-tauri/Cargo.toml --locked

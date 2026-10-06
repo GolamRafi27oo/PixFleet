@@ -1,4 +1,6 @@
-export type Format = "webp" | "avif";
+import { type Format, isOutputFormat } from "./formats";
+
+export type { Format } from "./formats";
 export type Preset = {
   id: string;
   name: string;
@@ -24,7 +26,6 @@ export type ExportResult = {
   inputBytes: number;
   outputBytes: number;
   errors: string[];
-  html: string;
   cancelled: boolean;
 };
 export const PRESETS: Preset[] = [
@@ -63,9 +64,10 @@ export function validatePreset(preset: Preset): string | null {
     return "Give your preset a name of 1–80 characters.";
   if (
     !preset.formats.length ||
-    preset.formats.some((f) => !["webp", "avif"].includes(f))
+    preset.formats.some((f) => !isOutputFormat(f)) ||
+    new Set(preset.formats).size !== preset.formats.length
   )
-    return "Choose at least one output format.";
+    return "Choose at least one output format, without duplicates.";
   if (
     !Number.isInteger(preset.quality) ||
     preset.quality < 1 ||
