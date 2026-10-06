@@ -17,6 +17,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Verify native codec setup paths
+        run: python -B -m unittest discover -s scripts -p "test_*.py"
   desktop:
     strategy:
       fail-fast: false
