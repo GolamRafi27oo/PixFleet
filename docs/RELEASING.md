@@ -32,6 +32,8 @@ Run the proposed demand test with 10 freelancers/agencies and aim for three paid
 
 ## HEIC codec builds
 
+Codec packages are installed into `.vcpkg/installed`. Keep this layout: the `vcpkg` Rust helper 0.2.15 used by `libheif-sys` on Windows ignores `VCPKG_INSTALLED_ROOT` and reads only `VCPKG_ROOT/installed`. The setup script verifies the package database and libheif headers before exporting build settings.
+
 HEIC requires libheif 1.23.1+ plus an HEVC decoder and encoder. Development on macOS can use `brew install libheif pkgconf`; that build depends on the local Homebrew libraries and must not be distributed as a portable installer.
 
 CI checks out vcpkg revision `0bc1a55f422ceb190877234b3ba88c372f04c485` (libheif 1.23.5), then runs `python scripts/prepare-native-codecs.py` to build the codec libraries statically for each runner. `src-tauri/vcpkg.json` selects libheif's HEVC feature, including libde265 and x265. The script exports Cargo/pkg-config settings through `GITHUB_ENV`. For a local release build, clone that same vcpkg revision into `.vcpkg`, run the script, and apply its printed environment values before building. Verify the resulting installer on a machine without Homebrew/vcpkg.
