@@ -18,6 +18,12 @@ The workflow produces unsigned artifacts. It does not publish a release or uploa
 
 Version values must match in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`. Use immutable signed release artifacts and publish checksums. Automatic updates are intentionally absent until there is a trusted, signed update channel.
 
+## Release checks
+
+The app checks public GitHub releases in [GolamRafi27oo/PixFleet-releases](https://github.com/GolamRafi27oo/PixFleet-releases/releases), on startup and through Settings → Check for updates. Publish stable semantic-version tags such as `v0.2.1` there; drafts, prereleases and non-version tags are ignored. The source repository remote is independent of the release repository. Checking for a release does not download or install it.
+
+Sparkle is deferred until a hosted appcast and an Ed25519 public signing key are available. A future macOS integration must bundle the Sparkle framework, configure the feed and public key, and publish signed update archives. Keep the private signing key outside the application and source repository. See [Sparkle setup](https://sparkle-project.org/documentation/) and [publishing updates](https://sparkle-project.org/documentation/publishing/). GitHub release checks remain the current behavior on every platform.
+
 ## Commercial launch
 
 Select the checkout provider and seller identity, final pricing, support policy and refund terms. Implement offline signature-verified licenses using a public verification key; private keys stay with your issuing service. A local boolean is not licensing. Decide how license delivery, device changes and revoked/expired licenses behave while offline before enforcing tiers. Existing purchased versions should keep working under the promised model.

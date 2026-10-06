@@ -2,6 +2,7 @@
 
 ## 0.2.0
 
+- Check published updates in `GolamRafi27oo/PixFleet-releases`.
 - Export image files only; remove generated HTML, JSON manifests, README files and the HTML-copy interface.
 
 - Default exported filenames to `pixfleet-001-640w` instead of including the source filename; custom prefixes replace `pixfleet`.
