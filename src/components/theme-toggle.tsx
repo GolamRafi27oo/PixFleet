@@ -52,9 +52,13 @@ export function ThemeToggle() {
   };
 
   return (
-    <fieldset className="theme-toggle" aria-label="Appearance">
+    <fieldset
+      className="flex m-0 min-w-0 gap-[3px] p-[3px] [border:1px_solid_var(--border)] rounded-[8px] bg-[var(--canvas)] max-[1120px]:[&_button_span]:hidden"
+      aria-label="Appearance"
+    >
       {options.map(({ value, label, icon: Icon }) => (
         <button
+          className="flex items-center justify-center gap-[5px] min-w-8 min-h-7.5 py-[5px] px-2 rounded-[5px] text-[color:var(--text-secondary,_#64756a)] text-[10px] hover:bg-[var(--mint)] aria-pressed:bg-[var(--surface-accent,_#dfece2)] aria-pressed:text-[color:var(--ink)] aria-pressed:shadow-[0_1px_3px_#00000012] max-[720px]:px-[5px]"
           key={value}
           type="button"
           aria-label={`${label} theme`}
