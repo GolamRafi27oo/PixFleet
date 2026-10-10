@@ -20,7 +20,7 @@ Version values must match in `package.json`, `src-tauri/Cargo.toml` and `src-tau
 
 ## Release checks
 
-The app checks public GitHub releases in [GolamRafi27oo/PixFleet-releases](https://github.com/GolamRafi27oo/PixFleet-releases/releases), on startup and through Settings → Check for updates. Publish stable semantic-version tags such as `v0.2.1` there; drafts, prereleases and non-version tags are ignored. The source repository remote is independent of the release repository. Checking for a release does not download or install it.
+The app checks public GitHub releases in [GolamRafi27oo/PixFleet](https://github.com/GolamRafi27oo/PixFleet/releases), on startup and through Settings → Check for updates. Publish stable semantic-version tags such as `v0.2.1` there; drafts, prereleases and non-version tags are ignored. The source repository remote is independent of the release repository. Checking for a release does not download or install it.
 
 Sparkle is deferred until a hosted appcast and an Ed25519 public signing key are available. A future macOS integration must bundle the Sparkle framework, configure the feed and public key, and publish signed update archives. Keep the private signing key outside the application and source repository. See [Sparkle setup](https://sparkle-project.org/documentation/) and [publishing updates](https://sparkle-project.org/documentation/publishing/). GitHub release checks remain the current behavior on every platform.
 

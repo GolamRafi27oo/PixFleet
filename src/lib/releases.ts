@@ -1,5 +1,5 @@
 export const RELEASES_URL =
-  "https://api.github.com/repos/GolamRafi27oo/PixFleet-releases/releases?per_page=20";
+  "https://api.github.com/repos/GolamRafi27oo/PixFleet/releases?per_page=20";
 
 /** Compare stable release versions numerically, including optional v prefixes. */
 export function compareVersions(left: string, right: string): number {
