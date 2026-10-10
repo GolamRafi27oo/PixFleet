@@ -27,6 +27,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "macOS": {
+      "signingIdentity": "-"
+    },
     "category": "GraphicsAndDesign",
     "shortDescription": "Offline image preparation for the web",
     "icon": [

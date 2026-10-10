@@ -10,7 +10,9 @@
 
 ## Platform distribution
 
-The workflow produces unsigned artifacts. It does not publish a release or upload customer files.
+The workflow produces artifacts without a verified publisher signature. macOS apps use ad-hoc signing (`bundle.macOS.signingIdentity: "-"`) without Apple credentials; other platforms remain unsigned. The existing artifact names retain the `unsigned` suffix. The workflow does not publish a release or upload customer files.
+
+For macOS releases without an Apple Developer account, include the [downloaded-build installation instructions](../README.md#opening-a-downloaded-macos-build) in the release notes. Ad-hoc signing does not provide notarization or bypass Gatekeeper. Rebuild and upload the new DMG after changing signing settings; existing downloads are unchanged. Before distribution, verify the app copied from the DMG with `codesign --verify --deep --strict --verbose=2 "/Applications/PixFleet.app"`, and test the browser-downloaded DMG on a clean Mac. Signature verification alone does not confirm Gatekeeper acceptance.
 
 - **macOS:** sign with your Apple Developer certificate and notarize. Provide signing/notarization credentials through protected CI secrets following [Tauri's macOS signing documentation](https://v2.tauri.app/distribute/sign/macos/). Build and verify Apple Silicon and Intel artifacts before advertising both architectures.
 - **Windows:** sign NSIS/MSI installers using your code-signing certificate and follow [Tauri's Windows distribution guidance](https://v2.tauri.app/distribute/windows-installer/). Verify the WebView2 installation story on a clean system; an entirely offline installer needs a deliberate WebView2 bundling policy.

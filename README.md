@@ -66,7 +66,19 @@ The commands below build the CPU architecture of the current Rust host toolchain
 
 Open the `.dmg` and drag **PixFleet** into **Applications**, or run the `.app` directly. To create only the app, use `pnpm tauri build --bundles app`. To create only the installer, use `pnpm tauri build --bundles dmg`; a DMG-only build may remove the intermediate `.app` after packaging.
 
-Public distribution requires your Apple signing and notarization setup. See [Tauri's macOS prerequisites](https://v2.tauri.app/start/prerequisites/#macos) and [DMG guide](https://v2.tauri.app/distribute/dmg/).
+macOS builds use free ad-hoc signing, including builds from GitHub Actions. No Apple account or signing secrets are required. These builds are not Apple-notarized, so downloaded copies still require manual approval. For installation without this extra approval, configure Developer ID signing and notarization. See [Tauri's macOS signing guide](https://v2.tauri.app/distribute/sign/macos/).
+
+#### Opening a downloaded macOS build
+
+1. Open the DMG and drag **PixFleet** into **Applications**.
+2. Try opening PixFleet. If macOS blocks it, open **System Settings → Privacy & Security** and select **Open Anyway**, if available, then confirm.
+3. If your trusted PixFleet download still shows “damaged and can't be opened”, remove quarantine from only the installed app, then try opening it again:
+
+   ```sh
+   xattr -dr com.apple.quarantine "/Applications/PixFleet.app"
+   ```
+
+Only use this command for a build you trust. It does not repair corrupted files or an invalid signature. If opening still fails, check the signature with `codesign --verify --deep --strict --verbose=2 "/Applications/PixFleet.app"` and report the output. Do not disable Gatekeeper globally.
 
 ### Windows
 
@@ -157,7 +169,7 @@ The checked-in [CI workflow](.github/workflows/ci.yml) uses separate macOS, Wind
    pixfleet-Linux-unsigned
    ```
 
-Extract the ZIP for the desired platform to find its installer files. These are workflow artifacts, not automatically published GitHub Releases. Each runner builds its host architecture; this workflow does not produce every CPU architecture. Builds remain unsigned until signing is configured, and platform verification status is recorded in [VALIDATION.md](docs/VALIDATION.md).
+Extract the ZIP for the desired platform to find its installer files. These are workflow artifacts, not automatically published GitHub Releases. Each runner builds its host architecture; this workflow does not produce every CPU architecture. The artifact names retain the `unsigned` suffix to indicate that they have no verified publisher signature; macOS apps are ad-hoc signed but not notarized. Platform verification status is recorded in [VALIDATION.md](docs/VALIDATION.md).
 
 ## Start developing
 
