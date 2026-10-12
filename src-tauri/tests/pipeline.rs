@@ -7,6 +7,109 @@ use std::{
 };
 
 #[test]
+fn given_svg_with_transparency_when_decoded_then_color_alpha_and_viewbox_are_preserved() {
+    // Given an SVG with only a viewBox and a half-transparent red shape.
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("art.SVG");
+    fs::write(&path, r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32"><rect width="32" height="32" fill="red" opacity="0.5"/></svg>"#).unwrap();
+
+    // When the native import decoder rasterizes it.
+    let (image, bytes) = engine::decode(&path).unwrap();
+    let rgba = image.to_rgba8();
+
+    // Then geometry, straight-alpha color and source byte count are retained.
+    assert_eq!(rgba.dimensions(), (64, 32));
+    assert_eq!(rgba.get_pixel(10, 10).0, [255, 0, 0, 128]);
+    assert_eq!(rgba.get_pixel(50, 10)[3], 0);
+    assert_eq!(bytes, fs::metadata(path).unwrap().len());
+}
+
+#[test]
+fn given_svg_when_exported_then_all_output_formats_are_written_and_original_is_unchanged() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("art.svg");
+    let original = r#"<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32"><rect x="16" y="8" width="32" height="16" fill="red"/></svg>"#;
+    fs::write(&path, original).unwrap();
+    let mut settings = preset();
+    settings.formats = ["png", "jpeg", "webp", "avif", "heic"]
+        .map(String::from)
+        .to_vec();
+    settings.widths = vec![32];
+
+    let result = engine::export(
+        &[Source {
+            path: path.clone(),
+            name: "art.svg".into(),
+        }],
+        &settings,
+        folder.path(),
+        &AtomicBool::new(false),
+        |_| {},
+    )
+    .unwrap();
+    let output = Path::new(&result.directory);
+    let png = image::open(output.join("png/pixfleet-001-32w.png"))
+        .unwrap()
+        .to_rgba8();
+    let jpeg = image::open(output.join("jpeg/pixfleet-001-32w.jpeg"))
+        .unwrap()
+        .to_rgb8();
+
+    assert!(result.errors.is_empty(), "{:?}", result.errors);
+    assert_eq!(result.files, 5);
+    assert_eq!(png.dimensions(), (32, 16));
+    assert_eq!(png.get_pixel(0, 0)[3], 0);
+    assert!(jpeg.get_pixel(0, 0).0.iter().all(|value| *value > 240));
+    assert_image_only_export(output, 5);
+    assert_eq!(fs::read_to_string(path).unwrap(), original);
+}
+
+#[test]
+fn given_invalid_or_unsupported_svg_when_imported_then_a_useful_error_is_returned() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("invalid.svg");
+    for (body, expected) in [
+        ("not XML", "Invalid SVG"),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg" width="16001" height="1"/>"#,
+            "limit",
+        ),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg" width="10000" height="10000"/>"#,
+            "limit",
+        ),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>"#,
+            "scripts",
+        ),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>"#,
+            "foreignObject",
+        ),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg"><animate/></svg>"#,
+            "animation",
+        ),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg"><image href="file:///private/image.png"/></svg>"#,
+            "linked",
+        ),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/image.png"/></svg>"#,
+            "linked",
+        ),
+        (
+            r#"<svg xmlns="http://www.w3.org/2000/svg"><image href="data:image/png;base64,AA=="/></svg>"#,
+            "embedded",
+        ),
+    ] {
+        fs::write(&path, body).unwrap();
+        let result = engine::decode(&path);
+        assert!(result.unwrap_err().contains(expected), "{body}");
+    }
+}
+
+#[test]
 fn given_path_like_names_when_slugged_then_they_are_portable() {
     assert_eq!(engine::slug("../../Client \"Hero\".PNG"), "client-hero-png");
     assert_eq!(engine::slug("你好"), "image");

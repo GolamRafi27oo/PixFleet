@@ -66,8 +66,8 @@ export function EmptyBatch({
         Choose images
       </Button>
       <div className="text-[10px] tracking-[0.6px] text-[color:var(--text-secondary,_#64756a)] mt-4.5">
-        JPG, PNG, WEBP, HEIC <span className="py-0 px-[7px]">·</span> Up to 500
-        images per batch
+        JPG, PNG, WEBP, HEIC, SVG <span className="py-0 px-[7px]">·</span> Up to
+        500 images per batch
       </div>
     </div>
   );

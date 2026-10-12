@@ -11,8 +11,9 @@ Use **Save as a new preset** to store your settings on this device. Manage saved
 
 ## Troubleshooting
 
-- **No files added:** JPEG, PNG, static WebP and HEIC/HEIF photos are supported. Already-imported files are ignored. Use smaller folders if you reach 500 images or the folder entry scan limit.
+- **No files added:** JPEG, PNG, static WebP, static SVG and HEIC/HEIF photos are supported. Already-imported files are ignored. Use smaller folders if you reach 500 images or the folder entry scan limit.
 - **Image rejected:** check the message for corruption, animation, 100 MB file limit, 40 megapixel limit or 16,000-pixel dimension limit.
+- **SVG import:** use a static UTF-8 SVG with a width/height or viewBox. The canvas size is the maximum export size. Convert text to paths for consistent fonts. Linked or embedded images, scripts, animation, HTML foreignObject content and XML DTDs are not supported; simplify these in your SVG editor before importing.
 - **Export takes time:** AVIF encoding is CPU-intensive. Try WebP, fewer widths, or a smaller batch. Cancel waits for the current encode to finish, then removes incomplete output.
 - **Some images fail:** successful files still export; the export summary lists the failures. If every image fails, no final output folder is published.
 - **Colors differ:** this version discards ICC profiles. Convert wide-gamut images to sRGB in a color-managed editor first.

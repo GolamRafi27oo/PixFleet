@@ -58,7 +58,8 @@ export function ExportSettings({
         </span>
       </div>
       <fieldset
-        className="border-0 p-0 m-0 min-w-0 min-h-0 overflow-y-auto [scrollbar-width:thin] flex-1 max-[720px]:overflow-visible max-[720px]:grid max-[720px]:grid-cols-2 max-[520px]:grid-cols-1 max-[720px]:gap-x-[25px]"
+        // Keep the 2px focus outline + 4px offset inside the scroll viewport.
+        className="border-0 p-1.5 -m-1.5 min-w-0 min-h-0 overflow-y-auto [scrollbar-width:thin] flex-1 max-[720px]:overflow-visible max-[720px]:grid max-[720px]:grid-cols-2 max-[520px]:grid-cols-1 max-[720px]:gap-x-[25px]"
         disabled={!!busy}
       >
         <PresetSelector

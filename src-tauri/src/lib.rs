@@ -1,5 +1,6 @@
 pub mod engine;
 mod heic;
+mod svg;
 
 use base64::Engine;
 use engine::{ExportResult, Preset, Source};
@@ -85,7 +86,7 @@ fn collect(paths: Vec<PathBuf>) -> (Vec<PathBuf>, Vec<String>) {
         } else if path.extension().is_some_and(|s| {
             matches!(
                 s.to_string_lossy().to_ascii_lowercase().as_str(),
-                "jpg" | "jpeg" | "png" | "webp" | "heic" | "heif"
+                "jpg" | "jpeg" | "png" | "webp" | "heic" | "heif" | "svg"
             )
         }) {
             files.push(path);
@@ -171,7 +172,10 @@ async fn pick_images(app: tauri::AppHandle, folder: bool) -> Result<ImportResult
             .map(|f| vec![f.path().to_owned()])
     } else {
         dialog
-            .add_filter("Images", &["jpg", "jpeg", "png", "webp", "heic", "heif"])
+            .add_filter(
+                "Images",
+                &["jpg", "jpeg", "png", "webp", "heic", "heif", "svg"],
+            )
             .pick_files()
             .await
             .map(|files| files.into_iter().map(|f| f.path().to_owned()).collect())
@@ -349,4 +353,28 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("PixFleet could not start");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::collect;
+    use std::fs;
+
+    #[test]
+    fn given_svg_files_when_collecting_direct_paths_and_folders_then_both_are_importable() {
+        let folder = tempfile::tempdir().unwrap();
+        let nested = folder.path().join("nested");
+        fs::create_dir(&nested).unwrap();
+        let svg = nested.join("logo.SVG");
+        fs::write(&svg, "<svg/>").unwrap();
+        fs::write(nested.join("ignored.txt"), "not an image").unwrap();
+
+        let (direct, direct_errors) = collect(vec![svg.clone()]);
+        let (recursive, recursive_errors) = collect(vec![folder.path().to_path_buf()]);
+
+        assert_eq!(direct, vec![svg.clone()]);
+        assert_eq!(recursive, vec![svg]);
+        assert!(direct_errors.is_empty());
+        assert!(recursive_errors.is_empty());
+    }
 }
