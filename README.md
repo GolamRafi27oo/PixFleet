@@ -222,6 +222,10 @@ The existing GitHub Actions workflow runs `pnpm check`, so Biome checks also run
 
 The early-access edition has all features available. The 500-image limit is a resource guard, not a Free/Pro restriction. There is no payment processing or license enforcement yet.
 
+### Updates
+
+PixFleet checks stable GitHub releases on startup and from **Settings → Check for updates**. When a newer signed version is available, Settings asks for permission before downloading and installing it. The Tauri updater verifies the artifact against PixFleet's embedded public key, then replaces the installed version; Windows completes the update through its installer, while macOS and Linux require a restart after installation. Release publishing must include the signed platform artifacts and `latest.json` manifest described in [docs/RELEASING.md](docs/RELEASING.md).
+
 ## Output example
 
 ```text

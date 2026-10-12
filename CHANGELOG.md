@@ -1,7 +1,15 @@
 # Changelog
 
+## 0.2.2
+
+- Publish signed updater artifacts for permission-based in-app downloads and installation.
+- Add SVG import and conversion support across the existing output formats.
+- Fix clipped focus outlines in the export settings panel.
+
 ## 0.2.1
 
+- Add signed, permission-based in-app updates. PixFleet can check the Tauri update manifest, download a verified update, and install it after the user chooses **Download and install**.
+- Generate signed updater artifacts in release builds using the configured Tauri signing key.
 - Import static SVG artwork through the file picker, folders and drag/drop, and convert it locally to all existing output formats. Preserve transparency and report unsupported SVG content.
 
 - Fix clipped focus outlines in the export settings panel.
