@@ -36,7 +36,15 @@ export function useWorkspace() {
   const savingRef = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsHealthy, setSettingsHealthy] = useState(true);
-  const { updateState, latestVersion, checkForUpdates } = useUpdateCheck();
+  const {
+    updateState,
+    latestVersion,
+    releaseUrl,
+    updateProgress,
+    updateError,
+    checkForUpdates,
+    installUpdate,
+  } = useUpdateCheck();
   const allPresets = [...PRESETS, ...custom];
   const selectedAssets = assets.filter((a) => selected.has(a.id));
   const totalBytes = selectedAssets.reduce((total, a) => total + a.bytes, 0);
@@ -288,11 +296,15 @@ export function useWorkspace() {
     settingsHealthy,
     updateState,
     latestVersion,
+    releaseUrl,
+    updateProgress,
+    updateError,
     allPresets,
     totalBytes,
     outputs,
     validation,
     checkForUpdates,
+    installUpdate,
     importImages,
     remove,
     exportImages,

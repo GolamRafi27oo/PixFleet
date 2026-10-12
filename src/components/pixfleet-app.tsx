@@ -73,7 +73,11 @@ export function PixFleetApp() {
               <SettingsPage
                 updateState={state.updateState}
                 latestVersion={state.latestVersion}
+                releaseUrl={state.releaseUrl}
+                updateProgress={state.updateProgress}
+                updateError={state.updateError}
                 checkForUpdates={state.checkForUpdates}
+                installUpdate={state.installUpdate}
               />
             ) : view === "presets" ? (
               <PresetsPage

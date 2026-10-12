@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { compareVersions, latestStableVersion } from "./releases";
+import {
+  compareVersions,
+  latestStableRelease,
+  latestStableVersion,
+} from "./releases";
 
 describe("Given stable application and release versions", () => {
   it.each([
@@ -40,6 +44,24 @@ describe("Given a GitHub releases response", () => {
   });
   it("When the repository has no releases then there is no stable release", () => {
     expect(latestStableVersion([])).toBeNull();
+  });
+  it("When stable releases arrive out of order then the newest download page is selected", () => {
+    expect(
+      latestStableRelease([
+        {
+          tag_name: "v0.1.0",
+          html_url: "https://example.com/old",
+          draft: false,
+          prerelease: false,
+        },
+        {
+          tag_name: "v0.2.1",
+          html_url: "https://example.com/new",
+          draft: false,
+          prerelease: false,
+        },
+      ]),
+    ).toEqual({ version: "0.2.1", url: "https://example.com/new" });
   });
   it.each([{}, null, [{ tag_name: 123 }]])(
     "When the response is malformed then it cannot report up to date",
