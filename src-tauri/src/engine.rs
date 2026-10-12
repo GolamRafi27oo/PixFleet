@@ -170,6 +170,12 @@ pub fn decode(path: &Path) -> Result<(DynamicImage, u64), String> {
         return Err("Animated images are not supported; choose a still image".into());
     }
     let size = bytes.len() as u64;
+    if path
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("svg"))
+    {
+        return crate::svg::decode(&bytes).map(|image| (image, size));
+    }
     if crate::heic::is_heic(&bytes) {
         return crate::heic::decode(&bytes).map(|image| (image, size));
     }
@@ -180,7 +186,7 @@ pub fn decode(path: &Path) -> Result<(DynamicImage, u64), String> {
         reader.format(),
         Some(image::ImageFormat::Jpeg | image::ImageFormat::Png | image::ImageFormat::WebP)
     ) {
-        return Err("Supported inputs: JPEG, PNG, static WebP and HEIC/HEIF".into());
+        return Err("Supported inputs: JPEG, PNG, static WebP, HEIC/HEIF and static SVG".into());
     }
     let mut limits = Limits::default();
     limits.max_image_width = Some(16000);

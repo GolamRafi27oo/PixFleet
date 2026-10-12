@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Import static SVG artwork through the file picker, folders and drag/drop, and convert it locally to all existing output formats. Preserve transparency and report unsupported SVG content.
+
+- Fix clipped focus outlines in the export settings panel.
+
 ## 0.2.0
 
 - Check published updates in `GolamRafi27oo/PixFleet`.

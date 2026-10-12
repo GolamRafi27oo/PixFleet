@@ -210,7 +210,7 @@ The existing GitHub Actions workflow runs `pnpm check`, so Biome checks also run
 
 ## Supported workflow
 
-- JPEG, PNG, static WebP and HEIC/HEIF input; WebP, AVIF, PNG, JPEG and HEIC output. PNG is lossless; JPEG composites transparency onto white.
+- JPEG, PNG, static WebP, static SVG and HEIC/HEIF input; WebP, AVIF, PNG, JPEG and HEIC output. PNG is lossless; JPEG composites transparency onto white.
 - File/folder picker and native drag/drop, recursive folder import, duplicate suppression.
 - Up to 500 images per workspace, 100 MB per file, 40 megapixels and 16,000 pixels per dimension.
 - 1–6 output widths, no upscaling, preserved aspect ratio, duplicate effective widths removed.
@@ -236,7 +236,7 @@ Originals remain untouched. Total export size may exceed input size because you 
 
 ## Important boundaries
 
-Use sRGB originals for predictable colors. ICC/wide-gamut profiles are not preserved or color-managed. Animation, SVG, RAW and AVIF inputs are rejected or omitted by folder import. Export cancellation waits for an active encode to finish. Closing or force-quitting during export may leave a hidden `.pixfleet-*` staging folder in the chosen destination; it can be removed after confirming no export is running.
+Use sRGB originals for predictable colors. ICC/wide-gamut profiles are not preserved or color-managed. Animation, RAW and AVIF inputs are rejected or omitted by folder import. Export cancellation waits for an active encode to finish. Closing or force-quitting during export may leave a hidden `.pixfleet-*` staging folder in the chosen destination; it can be removed after confirming no export is running.
 
 This repository is an implemented early-access application, not a signed commercial release. Cross-platform source and CI are included; actual platform verification is recorded in [validation](docs/VALIDATION.md), never inferred from configuration alone.
 
@@ -263,3 +263,9 @@ pnpm desktop:build
 ```
 
 This removes generated release outputs, including previous installers, and rebuilds them. For the same error during `pnpm desktop`, omit `--release` from the clean command. Do not copy `src-tauri/target/` when moving the project; it is already excluded from Git.
+
+### SVG input
+
+Static SVG files can be selected, dropped or imported from folders and converted to any output format. They are rasterized locally at their intrinsic width/height (or viewBox size), then use the same no-upscaling rule as photos. Set a larger canvas in your SVG editor if you need larger exports. Transparency is preserved in alpha-capable formats; JPEG uses white.
+
+Text uses installed system fonts and may differ between computers; convert text to paths for consistent results. Linked or embedded images, scripts, animation, HTML foreignObject content, and XML DTDs are rejected with an import error. Convert those elements to vector paths before importing. SVGZ is not supported. No external SVG resources are loaded.
