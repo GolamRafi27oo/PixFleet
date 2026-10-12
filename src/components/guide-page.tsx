@@ -9,9 +9,9 @@ export function GuidePage() {
           <h2>Bring your images</h2>
           <p className="text-[12px] text-[color:var(--text-secondary,_#7c9083)] leading-[1.9]">
             Choose files, add a folder (including subfolders), or drag images
-            into the desktop window. JPEG, PNG, static WebP and HEIC/HEIF photos
-            are supported. Each image can be up to 100 MB and 40 megapixels,
-            with up to 500 images in a batch.
+            into the desktop window. JPEG, PNG, static WebP, static SVG and
+            HEIC/HEIF photos are supported. Each image can be up to 100 MB and
+            40 megapixels, with up to 500 images in a batch.
           </p>
         </div>
       </article>
@@ -46,8 +46,11 @@ export function GuidePage() {
             Originals stay untouched. Re-encoding removes source metadata and
             applies photo orientation. Exports may be larger when you generate
             multiple sizes. Use sRGB originals for predictable colors;
-            wide-gamut profiles are not preserved. Animation, SVG, RAW and AVIF
-            inputs are not supported in this version.
+            wide-gamut profiles are not preserved. Animation, RAW and AVIF
+            inputs are not supported in this version. Static SVGs use their
+            canvas size and installed fonts; convert text to paths for
+            consistent results. Linked or embedded images, scripts and HTML
+            content in SVGs are not supported.
           </p>
           <p className="text-[12px] text-[color:var(--text-secondary,_#7c9083)] leading-[1.9]">
             Cancel safely between outputs. An active encoder finishes before
