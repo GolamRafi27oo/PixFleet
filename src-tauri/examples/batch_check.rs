@@ -29,6 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         sources.push(Source { path, name });
     }
     let preset = Preset {
+        allow_upscaling: false,
         id: "qa".into(),
         name: "50-image smoke check".into(),
         formats: vec!["webp".into(), "avif".into()],

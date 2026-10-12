@@ -119,7 +119,7 @@ fn given_path_like_names_when_slugged_then_they_are_portable() {
 #[test]
 fn given_small_original_when_resizing_then_no_upscale_or_duplicate_outputs() {
     assert_eq!(
-        engine::effective_widths(&[640, 1024, 1920], 800),
+        engine::effective_widths(&[640, 1024, 1920], 800, false),
         vec![640, 800]
     );
 }
@@ -461,6 +461,83 @@ fn given_corrupt_heic_when_decoding_then_it_is_rejected_without_panicking() {
     assert!(engine::decode(&path).is_err());
 }
 
+#[test]
+fn given_upscaling_toggle_when_exporting_then_dimensions_and_output_counts_match() {
+    for (enabled, expected) in [(false, vec![(64, 32)]), (true, vec![(128, 64), (256, 128)])] {
+        let folder = tempfile::tempdir().unwrap();
+        let source = fixture(folder.path(), "source.png");
+        let mut settings = preset();
+        settings.formats = vec!["png".into()];
+        settings.widths = vec![128, 256];
+        settings.allow_upscaling = enabled;
+
+        let result = engine::export(
+            &[source],
+            &settings,
+            folder.path(),
+            &AtomicBool::new(false),
+            |_| {},
+        )
+        .unwrap();
+        let dimensions: Vec<_> = expected
+            .iter()
+            .map(|(width, _)| {
+                image::image_dimensions(
+                    Path::new(&result.directory).join(format!("png/pixfleet-001-{width}w.png")),
+                )
+                .unwrap()
+            })
+            .collect();
+
+        assert!(result.errors.is_empty());
+        assert_eq!(result.files, expected.len());
+        assert_eq!(dimensions, expected);
+    }
+}
+
+#[test]
+fn given_legacy_and_enabled_presets_when_roundtripped_then_upscaling_is_preserved() {
+    let mut legacy = serde_json::to_value(preset()).unwrap();
+    legacy.as_object_mut().unwrap().remove("allowUpscaling");
+    let restored: Preset = serde_json::from_value(legacy).unwrap();
+    let mut enabled = preset();
+    enabled.allow_upscaling = true;
+    let roundtrip: Preset =
+        serde_json::from_str(&serde_json::to_string(&enabled).unwrap()).unwrap();
+
+    assert!(!restored.allow_upscaling);
+    assert!(roundtrip.allow_upscaling);
+}
+
+#[test]
+fn given_excessive_upscale_when_exporting_then_output_is_rejected_before_resize() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("portrait.png");
+    ImageBuffer::from_pixel(16, 64, Rgba([0u8, 0, 0, 255]))
+        .save(&path)
+        .unwrap();
+    let source = Source {
+        path,
+        name: "portrait.png".into(),
+    };
+    let mut settings = preset();
+    settings.allow_upscaling = true;
+    settings.widths = vec![8192];
+    settings.formats = vec!["png".into()];
+
+    let result = engine::export(
+        &[source],
+        &settings,
+        folder.path(),
+        &AtomicBool::new(false),
+        |_| {},
+    )
+    .err()
+    .expect("Oversized output must fail");
+
+    assert!(result.contains("Requested output exceeds"));
+}
+
 fn preset() -> Preset {
     Preset {
         id: "test".into(),
@@ -468,6 +545,7 @@ fn preset() -> Preset {
         formats: vec!["webp".into(), "avif".into()],
         quality: 80,
         widths: vec![32, 64, 128],
+        allow_upscaling: false,
         prefix: String::new(),
     }
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+- Add an optional Allow upscaling setting, saved with presets, to enlarge images to the requested widths while preserving proportions.
+
+- Add a local macOS packaging helper to bundle HEIC libraries and repair ad-hoc signing for development builds that fail at launch.
+
 ## 0.2.2
 
 - Publish signed updater artifacts for permission-based in-app downloads and installation.

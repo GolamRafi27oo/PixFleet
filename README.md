@@ -1,6 +1,6 @@
 # PixFleet
 
-A local image preparation workspace for macOS, Windows and Linux. The current release is **0.2.2**. Built with **Next.js, React, TypeScript, Tailwind CSS, pnpm and Tauri 2**.
+A local image preparation workspace for macOS, Windows and Linux. The current release is **0.2.3**. Built with **Next.js, React, TypeScript, Tailwind CSS, pnpm and Tauri 2**.
 
 ![PixFleet workspace](docs/screenshots/workspace.jpg)
 
@@ -59,10 +59,10 @@ The commands below build the CPU architecture of the current Rust host toolchain
 
    ```text
    src-tauri/target/release/bundle/macos/PixFleet.app
-   src-tauri/target/release/bundle/dmg/PixFleet_0.2.2_aarch64.dmg
+   src-tauri/target/release/bundle/dmg/PixFleet_0.2.3_aarch64.dmg
    ```
 
-   The DMG filename above is an Apple Silicon example for version `0.2.2`. Intel builds use `x64` in the filename, and the version changes with the app version.
+   The DMG filename above is an Apple Silicon example for version `0.2.3`. Intel builds use `x64` in the filename, and the version changes with the app version.
 
 Open the `.dmg` and drag **PixFleet** into **Applications**, or run the `.app` directly. To create only the app, use `pnpm tauri build --bundles app`. To create only the installer, use `pnpm tauri build --bundles dmg`; a DMG-only build may remove the intermediate `.app` after packaging.
 
@@ -96,7 +96,7 @@ Only use this command for a build you trust. It does not repair corrupted files 
    src-tauri\target\release\bundle\msi\*.msi
    ```
 
-   For a version `0.2.2` x64 build with the default installer language, expected filenames are `PixFleet_0.2.2_x64-setup.exe` and `PixFleet_0.2.2_x64_en-US.msi`. Use the paths printed at the end of your build as the source of truth.
+   For a version `0.2.3` x64 build with the default installer language, expected filenames are `PixFleet_0.2.3_x64-setup.exe` and `PixFleet_0.2.3_x64_en-US.msi`. Use the paths printed at the end of your build as the source of truth.
 
 Run either installer to install PixFleet. For only the EXE installer, use `pnpm tauri build --bundles nsis`. The raw executable at `src-tauri\target\release\pixfleet.exe` is not an installer and still needs WebView2 on the destination machine.
 
@@ -169,7 +169,7 @@ The checked-in [CI workflow](.github/workflows/ci.yml) uses separate macOS, Wind
    pixfleet-Linux-unsigned
    ```
 
-Extract the ZIP for the desired platform to find its installer files. These are workflow artifacts for pull requests, branch pushes and manual runs. Each runner builds its host architecture; this workflow does not produce every CPU architecture. The artifact names retain the `unsigned` suffix to indicate that they have no verified publisher signature; macOS apps are ad-hoc signed but not notarized. A version tag such as `v0.2.2` additionally publishes signed updater artifacts and `latest.json` to the configured release repository when the required GitHub Actions secrets are present. See [RELEASING.md](docs/RELEASING.md) for the signing setup. Platform verification status is recorded in [VALIDATION.md](docs/VALIDATION.md).
+Extract the ZIP for the desired platform to find its installer files. These are workflow artifacts for pull requests, branch pushes and manual runs. Each runner builds its host architecture; this workflow does not produce every CPU architecture. The artifact names retain the `unsigned` suffix to indicate that they have no verified publisher signature; macOS apps are ad-hoc signed but not notarized. A version tag such as `v0.2.3` additionally publishes signed updater artifacts and `latest.json` to the configured release repository when the required GitHub Actions secrets are present. See [RELEASING.md](docs/RELEASING.md) for the signing setup. Platform verification status is recorded in [VALIDATION.md](docs/VALIDATION.md).
 
 ## Start developing
 
@@ -213,7 +213,7 @@ The existing GitHub Actions workflow runs `pnpm check`, so Biome checks also run
 - JPEG, PNG, static WebP, static SVG and HEIC/HEIF input; WebP, AVIF, PNG, JPEG and HEIC output. PNG is lossless; JPEG composites transparency onto white.
 - File/folder picker and native drag/drop, recursive folder import, duplicate suppression.
 - Up to 500 images per workspace, 100 MB per file, 40 megapixels and 16,000 pixels per dimension.
-- 1–6 output widths, no upscaling, preserved aspect ratio, duplicate effective widths removed.
+- 1–6 output widths, optional **Allow upscaling**, preserved aspect ratio, duplicate effective widths removed. Upscaling is off by default and saved with custom presets. Outputs are limited to 40 megapixels and 16,000 pixels per dimension.
 - Built-in and locally saved presets, adjustable quality and filename prefix.
 - System, Light and Dark appearance choices in the header, including the native window appearance. System is the default and follows OS appearance changes; your choice is saved locally on this device.
 - EXIF orientation applied before source metadata is discarded.
@@ -270,6 +270,18 @@ This removes generated release outputs, including previous installers, and rebui
 
 ### SVG input
 
-Static SVG files can be selected, dropped or imported from folders and converted to any output format. They are rasterized locally at their intrinsic width/height (or viewBox size), then use the same no-upscaling rule as photos. Set a larger canvas in your SVG editor if you need larger exports. Transparency is preserved in alpha-capable formats; JPEG uses white.
+Static SVG files can be selected, dropped or imported from folders and converted to any output format. They are rasterized locally at their intrinsic width/height (or viewBox size), then follow the same upscaling setting as photos. Upscaling enlarges the rasterized image; it does not re-render the vector artwork. Set a larger canvas in your SVG editor if you need larger exports. Transparency is preserved in alpha-capable formats; JPEG uses white.
 
 Text uses installed system fonts and may differ between computers; convert text to paths for consistent results. Linked or embedded images, scripts, animation, HTML foreignObject content, and XML DTDs are rejected with an import error. Convert those elements to vector paths before importing. SVGZ is not supported. No external SVG resources are loaded.
+
+### Local macOS launch crash involving libheif
+
+A local Homebrew build can fail at launch with a `libheif.1.dylib` library-validation error. For local testing, build an app without updater artifacts, then embed its codec libraries:
+
+```sh
+pnpm tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'
+python3 scripts/bundle-local-macos-libs.py src-tauri/target/release/bundle/macos/PixFleet.app
+open src-tauri/target/release/bundle/macos/PixFleet.app
+```
+
+The helper copies the native libraries into the app, rewrites their paths, and applies ad-hoc signing without hardened runtime for this local build. It leaves Homebrew libraries and system security settings unchanged. Use this repaired `.app` for local testing only: any installer or updater archive created before repair still contains the old binary. Release CI uses statically linked codecs; follow the release checklist for distribution and notarization.

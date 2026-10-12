@@ -21,10 +21,11 @@ export function GuidePage() {
           <h2>Make it fit your project</h2>
           <p className="text-[12px] text-[color:var(--text-secondary,_#7c9083)] leading-[1.9]">
             Pick a preset, choose WebP, AVIF, PNG, JPEG or HEIC, and adjust
-            quality and widths. Images keep their proportions and are never
-            enlarged. AVIF takes longer to encode; WebP is a good everyday
-            choice. PNG is lossless; JPEG puts transparent areas on white. HEIC
-            files are for compatible photo apps.
+            quality and widths. Images keep their proportions. Enable Allow
+            upscaling to enlarge smaller images; this may make them look softer.
+            AVIF takes longer to encode; WebP is a good everyday choice. PNG is
+            lossless; JPEG puts transparent areas on white. HEIC files are for
+            compatible photo apps.
           </p>
         </div>
       </article>
