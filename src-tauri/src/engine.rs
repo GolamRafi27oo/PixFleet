@@ -24,6 +24,8 @@ pub struct Preset {
     pub formats: Vec<String>,
     pub quality: u8,
     pub widths: Vec<u32>,
+    #[serde(default)]
+    pub allow_upscaling: bool,
     pub prefix: String,
 }
 
@@ -109,10 +111,16 @@ pub fn slug(value: &str) -> String {
     }
 }
 
-pub fn effective_widths(widths: &[u32], original: u32) -> Vec<u32> {
+pub fn effective_widths(widths: &[u32], original: u32, allow_upscaling: bool) -> Vec<u32> {
     widths
         .iter()
-        .map(|w| (*w).min(original))
+        .map(|w| {
+            if allow_upscaling {
+                *w
+            } else {
+                (*w).min(original)
+            }
+        })
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect()
@@ -305,11 +313,17 @@ pub fn export(
             let (image, input_bytes) = decode(&source.path)?;
             let mut output_bytes = 0;
             let mut files = 0;
-            for width in effective_widths(&preset.widths, image.width()) {
+            for width in effective_widths(&preset.widths, image.width(), preset.allow_upscaling) {
                 let height = ((u64::from(image.height()) * u64::from(width)
                     + u64::from(image.width()) / 2)
                     / u64::from(image.width()))
                 .max(1) as u32;
+                if width > 16000
+                    || height > 16000
+                    || u64::from(width) * u64::from(height) > MAX_PIXELS
+                {
+                    return Err("Requested output exceeds 16,000 pixels per dimension or 40 megapixels. Choose a smaller width.".into());
+                }
                 let resized = image.resize_exact(width, height, FilterType::Lanczos3);
                 for format in &preset.formats {
                     if cancelled.load(Ordering::Relaxed) {

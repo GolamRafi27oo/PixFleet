@@ -51,7 +51,11 @@ export function useWorkspace() {
   const outputs = selectedAssets.reduce(
     (total, a) =>
       total +
-      new Set(preset.widths.map((w) => Math.min(w, a.width))).size *
+      new Set(
+        preset.widths.map((w) =>
+          preset.allowUpscaling ? w : Math.min(w, a.width),
+        ),
+      ).size *
         preset.formats.length,
     0,
   );

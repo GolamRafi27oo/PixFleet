@@ -1,6 +1,6 @@
 [package]
 name = "pixfleet"
-version = "0.2.2"
+version = "0.2.3"
 description = "Offline image preparation for the web"
 edition = "2021"
 rust-version = "1.88"

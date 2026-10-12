@@ -2,7 +2,7 @@
 
 1. Open the desktop app and choose **Add images** or **Add folder**. You can drag files or folders into the window. Folder imports include subfolders but skip symlinks and unsupported extensions. Duplicate files already in the workspace are skipped.
 2. Check the images you want to export. Remove unwanted images with the row's remove button; this never deletes originals.
-3. Choose a preset. Set one or both formats, quality and up to six widths. Small images are never enlarged. Two widths larger than the original produce one output at the original width.
+3. Choose a preset. Set one or both formats, quality and up to six widths. Small images are not enlarged by default. Enable **Allow upscaling** to export larger widths while preserving proportions; enlarged images may look softer. With upscaling disabled, two widths larger than the original produce one output at the original width.
 4. Export names default to `pixfleet` with a batch sequence and actual width, for example `pixfleet-001-640w.webp`. A custom filename prefix replaces `pixfleet`; the original filename is not included in exported image names.
 5. Select **Export assets** and choose a destination. A new unique folder is created; earlier exports and source files are preserved.
 6. Use the exported images in the format folders. Exports contain image files only; no HTML, manifest or README files are generated.

@@ -7,6 +7,7 @@ export type Preset = {
   formats: Format[];
   quality: number;
   widths: number[];
+  allowUpscaling: boolean;
   prefix: string;
 };
 export type Asset = {
@@ -33,6 +34,7 @@ export const PRESETS: Preset[] = [
     id: "website",
     name: "Website essentials",
     formats: ["webp"],
+    allowUpscaling: false,
     quality: 80,
     widths: [640, 1024, 1920],
     prefix: "",
@@ -41,6 +43,7 @@ export const PRESETS: Preset[] = [
     id: "portfolio",
     name: "High-quality portfolio",
     formats: ["webp", "avif"],
+    allowUpscaling: false,
     quality: 90,
     widths: [640, 1280, 2400],
     prefix: "",
@@ -49,6 +52,7 @@ export const PRESETS: Preset[] = [
     id: "store",
     name: "Online store",
     formats: ["webp"],
+    allowUpscaling: false,
     quality: 82,
     widths: [400, 800, 1200],
     prefix: "product",
