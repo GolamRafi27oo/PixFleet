@@ -342,7 +342,6 @@ fn cancel_export(state: State<Session>) {
 pub fn run() {
     tauri::Builder::default()
         .manage(Session::default())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             pick_images,
             import_paths,

@@ -1,6 +1,6 @@
 [package]
 name = "pixfleet"
-version = "0.2.2"
+version = "0.2.1"
 description = "Offline image preparation for the web"
 edition = "2021"
 rust-version = "1.88"
@@ -25,7 +25,6 @@ base64 = "0.22"
 uuid = { version = "1", features = ["v4"] }
 tempfile = "3"
 resvg = { version = "0.45.1", default-features = false, features = ["text", "system-fonts"] }
-tauri-plugin-updater = "2.9.0"
 
 [profile.release]
 codegen-units = 1

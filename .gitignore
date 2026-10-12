@@ -7,8 +7,6 @@ src-tauri/gen/
 .DS_Store
 .env*
 !.env.example
-*.key
-*.key.pub
 coverage/
 
 .vcpkg/

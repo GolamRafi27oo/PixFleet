@@ -11,9 +11,6 @@ importers:
       '@tauri-apps/api':
         specifier: ^2.8.0
         version: 2.12.1
-      '@tauri-apps/plugin-updater':
-        specifier: ^2.13.3
-        version: 2.13.3
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.3.0)
@@ -781,9 +778,6 @@ packages:
     resolution: {integrity: sha512-kEDEiGzG+yAc5FeLxtXpES/VN+F2C8H0r4gDVtfRLKxT9np9101d9REG/Kgo2lr0hKi0IpDsODiHnU3+naOmLg==}
     engines: {node: '>= 10'}
     hasBin: true
-
-  '@tauri-apps/plugin-updater@2.13.3':
-    resolution: {integrity: sha512-CtbA8CZ79WJry2HbRiFGx6WZN7uspho6A4jM+TxmuqwWL2EEfJEMw6BIYgRncIZyqp4vEXw3U/97ZjQ33dKUgg==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -1707,10 +1701,6 @@ snapshots:
       '@tauri-apps/cli-win32-arm64-msvc': 2.12.1
       '@tauri-apps/cli-win32-ia32-msvc': 2.12.1
       '@tauri-apps/cli-win32-x64-msvc': 2.12.1
-
-  '@tauri-apps/plugin-updater@2.13.3':
-    dependencies:
-      '@tauri-apps/api': 2.12.1
 
   '@types/chai@5.2.3':
     dependencies:

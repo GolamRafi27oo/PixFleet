@@ -1,9 +1,5 @@
 export const RELEASES_URL =
   "https://api.github.com/repos/GolamRafi27oo/PixFleet/releases?per_page=20";
-export const RELEASES_PAGE =
-  "https://github.com/GolamRafi27oo/PixFleet/releases";
-
-export type StableRelease = { version: string; url: string };
 
 /** Compare stable release versions numerically, including optional v prefixes. */
 export function compareVersions(left: string, right: string): number {
@@ -40,31 +36,6 @@ export function latestStableVersion(payload: unknown): string | null {
     if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) continue;
     if (latest === null || compareVersions(version, latest) > 0)
       latest = version;
-  }
-  return latest;
-}
-
-/** Return the newest stable release and its human-facing download page. */
-export function latestStableRelease(payload: unknown): StableRelease | null {
-  if (!Array.isArray(payload)) throw new Error("Invalid release response");
-  let latest: StableRelease | null = null;
-  for (const release of payload) {
-    if (
-      !release ||
-      typeof release !== "object" ||
-      typeof release.tag_name !== "string" ||
-      typeof release.html_url !== "string" ||
-      typeof release.draft !== "boolean" ||
-      typeof release.prerelease !== "boolean"
-    ) {
-      throw new Error("Invalid release response");
-    }
-    if (release.draft || release.prerelease) continue;
-    const version = release.tag_name.replace(/^v/, "");
-    if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) continue;
-    if (latest === null || compareVersions(version, latest.version) > 0) {
-      latest = { version, url: release.html_url };
-    }
   }
   return latest;
 }

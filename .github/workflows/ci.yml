@@ -25,9 +25,6 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
-    env:
-      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -61,23 +58,6 @@ jobs:
       - run: cargo test --manifest-path src-tauri/Cargo.toml --locked
       - name: Build installers (ad-hoc signed on macOS)
         run: pnpm desktop:build
-      - name: Publish signed updater release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.PIXFLEET_RELEASE_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          owner: GolamRafi27oo
-          repo: PixFleet-releases
-          tagName: ${{ github.ref_name }}
-          releaseName: PixFleet ${{ github.ref_name }}
-          releaseBody: See the assets below to download or update PixFleet.
-          releaseDraft: false
-          prerelease: false
-          uploadUpdaterJson: true
-          uploadUpdaterSignatures: true
       - uses: actions/upload-artifact@v4
         with:
           name: pixfleet-${{ runner.os }}-unsigned

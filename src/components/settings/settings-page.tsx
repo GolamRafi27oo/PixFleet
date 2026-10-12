@@ -7,21 +7,8 @@ import { APP_VERSION } from "@/lib/app-info";
 export function SettingsPage({
   updateState,
   latestVersion,
-  releaseUrl,
-  updateProgress,
-  updateError,
   checkForUpdates,
-  installUpdate,
-}: Pick<
-  WorkspaceState,
-  | "updateState"
-  | "latestVersion"
-  | "releaseUrl"
-  | "updateProgress"
-  | "updateError"
-  | "checkForUpdates"
-  | "installUpdate"
->) {
+}: Pick<WorkspaceState, "updateState" | "latestVersion" | "checkForUpdates">) {
   return (
     <section className="w-full max-w-[none] ">
       <PageHeading
@@ -46,7 +33,7 @@ export function SettingsPage({
           <h2>Updates</h2>
           <p className="mt-[7px] text-[color:var(--text-secondary,_#64756a)] text-[11px] leading-[1.6]">
             {updateState === "available"
-              ? `Version ${latestVersion} is available. Download and install it when you are ready.`
+              ? `Version ${latestVersion} is available on GitHub.`
               : updateState === "up-to-date"
                 ? "You are running the latest version."
                 : updateState === "no-release"
@@ -64,40 +51,6 @@ export function SettingsPage({
         >
           {updateState === "checking" ? "Checking…" : "Check for updates"}
         </Button>
-        {updateState === "available" && (
-          <div className="w-full flex flex-wrap items-center gap-3">
-            <Button
-              type="button"
-              variant="primary"
-              onClick={installUpdate}
-              disabled={updateProgress !== "idle"}
-            >
-              {updateProgress === "downloading"
-                ? "Downloading…"
-                : updateProgress === "installing"
-                  ? "Installing…"
-                  : "Download and install"}
-            </Button>
-            <a
-              className="text-[11px] text-[color:var(--green)] underline underline-offset-2"
-              href={releaseUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View release notes
-            </a>
-          </div>
-        )}
-        {updateProgress === "installed" && (
-          <p className="w-full text-[11px] text-[color:var(--green)]">
-            Update installed. Restart PixFleet to finish.
-          </p>
-        )}
-        {updateError && (
-          <p className="w-full text-[11px] text-[color:var(--warning-text,_#ae6747)]">
-            {updateError}
-          </p>
-        )}
       </div>
     </section>
   );

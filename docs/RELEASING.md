@@ -18,17 +18,11 @@ For macOS releases without an Apple Developer account, include the [downloaded-b
 - **Windows:** sign NSIS/MSI installers using your code-signing certificate and follow [Tauri's Windows distribution guidance](https://v2.tauri.app/distribute/windows-installer/). Verify the WebView2 installation story on a clean system; an entirely offline installer needs a deliberate WebView2 bundling policy.
 - **Linux:** test AppImage, deb and rpm on supported distributions. WebKitGTK and system library versions vary; publish an explicit supported distribution list.
 
-Version values must match in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`. Use immutable signed release artifacts and publish checksums. Settings now offers permission-based download and installation when a signed Tauri update is available. The updater verifies the embedded public key before installing.
+Version values must match in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`. Use immutable signed release artifacts and publish checksums. Automatic updates are intentionally absent until there is a trusted, signed update channel.
 
 ## Release checks
 
-The app checks signed Tauri update manifests at `https://github.com/GolamRafi27oo/PixFleet-releases/releases/latest/download/latest.json`, on startup and through Settings → Check for updates. Publish stable semantic-version tags such as `v0.2.1` there; drafts, prereleases and non-version tags are ignored. The source repository remote is independent of the release repository. The user must click **Download and install**; the updater downloads the verified artifact and installs it. Windows restarts through the installer; macOS and Linux require a restart after installation.
-
-### Updater signing setup
-
-The private key is stored locally at `/Users/golam/.tauri/pixfleet.key` and is ignored by Git. Add its complete contents as the `TAURI_SIGNING_PRIVATE_KEY` GitHub Actions secret. If a password is later added to the key, also add `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. The public key is embedded in `src-tauri/tauri.conf.json`; never replace it without a migration plan because installed clients will reject artifacts signed by a different key.
-
-The checked-in GitHub workflow runs `tauri-apps/tauri-action` for version tags and publishes the platform-specific signed updater bundles, signatures, and `latest.json` to `GolamRafi27oo/PixFleet-releases`. Add `TAURI_SIGNING_PRIVATE_KEY`, optional `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, and `PIXFLEET_RELEASE_TOKEN` repository secrets before pushing a `v0.2.2`-style tag. `PIXFLEET_RELEASE_TOKEN` must be allowed to create releases and upload assets in the release repository. Do not publish a release until every target platform has a matching signed updater artifact.
+The app checks public GitHub releases in [GolamRafi27oo/PixFleet](https://github.com/GolamRafi27oo/PixFleet/releases), on startup and through Settings → Check for updates. Publish stable semantic-version tags such as `v0.2.1` there; drafts, prereleases and non-version tags are ignored. The source repository remote is independent of the release repository. Checking for a release does not download or install it.
 
 Sparkle is deferred until a hosted appcast and an Ed25519 public signing key are available. A future macOS integration must bundle the Sparkle framework, configure the feed and public key, and publish signed update archives. Keep the private signing key outside the application and source repository. See [Sparkle setup](https://sparkle-project.org/documentation/) and [publishing updates](https://sparkle-project.org/documentation/publishing/). GitHub release checks remain the current behavior on every platform.
 
