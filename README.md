@@ -1,6 +1,6 @@
 # PixFleet
 
-A local image preparation workspace for macOS, Windows and Linux. Built with **Next.js, React, TypeScript, Tailwind CSS, pnpm and Tauri 2**.
+A local image preparation workspace for macOS, Windows and Linux. The current release is **0.2.2**. Built with **Next.js, React, TypeScript, Tailwind CSS, pnpm and Tauri 2**.
 
 ![PixFleet workspace](docs/screenshots/workspace.jpg)
 
@@ -59,10 +59,10 @@ The commands below build the CPU architecture of the current Rust host toolchain
 
    ```text
    src-tauri/target/release/bundle/macos/PixFleet.app
-   src-tauri/target/release/bundle/dmg/PixFleet_0.1.0_aarch64.dmg
+   src-tauri/target/release/bundle/dmg/PixFleet_0.2.2_aarch64.dmg
    ```
 
-   The DMG filename above is the verified Apple Silicon output for version `0.1.0`. Intel builds use `x64` in the filename, and the version changes with the app version.
+   The DMG filename above is an Apple Silicon example for version `0.2.2`. Intel builds use `x64` in the filename, and the version changes with the app version.
 
 Open the `.dmg` and drag **PixFleet** into **Applications**, or run the `.app` directly. To create only the app, use `pnpm tauri build --bundles app`. To create only the installer, use `pnpm tauri build --bundles dmg`; a DMG-only build may remove the intermediate `.app` after packaging.
 
@@ -96,7 +96,7 @@ Only use this command for a build you trust. It does not repair corrupted files 
    src-tauri\target\release\bundle\msi\*.msi
    ```
 
-   For a version `0.1.0` x64 build with the default installer language, expected filenames are `PixFleet_0.1.0_x64-setup.exe` and `PixFleet_0.1.0_x64_en-US.msi`. Use the paths printed at the end of your build as the source of truth.
+   For a version `0.2.2` x64 build with the default installer language, expected filenames are `PixFleet_0.2.2_x64-setup.exe` and `PixFleet_0.2.2_x64_en-US.msi`. Use the paths printed at the end of your build as the source of truth.
 
 Run either installer to install PixFleet. For only the EXE installer, use `pnpm tauri build --bundles nsis`. The raw executable at `src-tauri\target\release\pixfleet.exe` is not an installer and still needs WebView2 on the destination machine.
 
@@ -169,7 +169,7 @@ The checked-in [CI workflow](.github/workflows/ci.yml) uses separate macOS, Wind
    pixfleet-Linux-unsigned
    ```
 
-Extract the ZIP for the desired platform to find its installer files. These are workflow artifacts, not automatically published GitHub Releases. Each runner builds its host architecture; this workflow does not produce every CPU architecture. The artifact names retain the `unsigned` suffix to indicate that they have no verified publisher signature; macOS apps are ad-hoc signed but not notarized. Platform verification status is recorded in [VALIDATION.md](docs/VALIDATION.md).
+Extract the ZIP for the desired platform to find its installer files. These are workflow artifacts for pull requests, branch pushes and manual runs. Each runner builds its host architecture; this workflow does not produce every CPU architecture. The artifact names retain the `unsigned` suffix to indicate that they have no verified publisher signature; macOS apps are ad-hoc signed but not notarized. A version tag such as `v0.2.2` additionally publishes signed updater artifacts and `latest.json` to the configured release repository when the required GitHub Actions secrets are present. See [RELEASING.md](docs/RELEASING.md) for the signing setup. Platform verification status is recorded in [VALIDATION.md](docs/VALIDATION.md).
 
 ## Start developing
 
